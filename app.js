@@ -1,5 +1,6 @@
 const http = require("http");
 const fs = require("fs");
+const request = require("request");
 
 const port = process.env.PORT || 3000;
 
@@ -27,3 +28,30 @@ const server = http.createServer((req, res) => {
 server.listen(port, () => {
 	console.log("Mawari Data Visualizer Node.js Server now running and listening on port " + port);
 });
+
+var data;
+
+// configure the request
+const options = {
+	url: "https://hgy62pa5ib.execute-api.ap-northeast-1.amazonaws.com/default/mawariRecordGetter",
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"x-api-key": "MPvWsooXt38PmDRGDIJnP8YQczQ2FquG3euSnxAU"
+	}
+};
+
+// request loop
+(function requestLoop() {
+	request(options, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+	        data = JSON.parse(body);
+	        console.log("ScannedCount: " + data.ScannedCount);
+	    }
+	    else {
+	    	console.log(response.statusCode + ": " + error);
+	    	data = null;
+	    }
+	});
+	setTimeout(requestLoop, 600000);
+})();
