@@ -1,0 +1,24 @@
+{
+  "name": "data-visualizer",
+  "version": "1.0.0",
+  "description": "Mawari Data Visualizer Node.js Server",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mawari-inc/data-visualizer.git"
+  },
+  "keywords": [],
+  "author": "Rodrigo Gutierrez <rodrigo@mawari.co.jp>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mawari-inc/data-visualizer/issues"
+  },
+  "homepage": "https://github.com/mawari-inc/data-visualizer#readme",
+  "engines": {
+    "node": "10.14.0"
+  }
+}
