@@ -20,14 +20,37 @@ const server = http.createServer((req, res) => {
 	    }]
 	};	
 
-	const result = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
-	res.write(result);
+	var result = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
+	
+	var addTable = result.replace("{{table}}", json2table(data.Items));
+
+	res.write(addTable);
 	res.end();
 });
 
 server.listen(port, () => {
 	console.log("Mawari Data Visualizer Node.js Server now running and listening on port " + port);
 });
+
+function json2table(json) {
+	var cols = Object.keys(json[0]);
+	var headerRow = "";
+	var bodyRows = "";
+
+	cols.map(function(col) {
+		headerRow += "<th>" + col + "</th>";
+	});
+
+	json.map(function(row) {
+		bodyRows += "<tr>";
+		cols.map(function(colName) {
+			bodyRows += "<td>" + row[colName] + "</td>";
+		});
+		bodyRows += "</tr>";
+	});
+
+	return "<table><thead><tr>" + headerRow + "</tr></thead><tbody>" + bodyRows + "</tbody></table>"; 
+}
 
 var data;
 
