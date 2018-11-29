@@ -19,7 +19,7 @@ const server = http.createServer((req, res) => {
 	    }]
 	};	
 
-	const result = input.replace("{{chartData}}", JSON.stringify(chartData));
+	const result = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
 	res.write(result);
 	res.end();
 });
