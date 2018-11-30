@@ -86,6 +86,9 @@ function sortCampaigns() {
 };
 
 function generateTimeline() {
+	chartData.labels = [];
+	chartData.datasets[0].data = [];
+
 	var dateTimes = data.Items.map(d => new Date(d.dateTime).getTime());
 	var lowerBounds = dateTimes[0];
 	dateTimes.forEach(dateTime => {
