@@ -53,6 +53,8 @@ const options = {
 	        data = JSON.parse(body);
 	        console.log("ScannedCount: " + data.ScannedCount);
 	        sortCampaigns();
+	        generateTimeline();
+	        console.log("Processing done");
 	    }
 	    else {
 	    	console.log(response.statusCode + ": " + error);
@@ -81,6 +83,42 @@ function sortCampaigns() {
         campaign.interactionCount += item.interactionCount;
         campaign.clickCount += item.clickCount;
 	});	
+};
+
+function generateTimeline() {
+	var dateTimes = data.Items.map(d => new Date(d.dateTime).getTime());
+	var lowerBounds = dateTimes[0];
+	dateTimes.forEach(dateTime => {
+		if (dateTime < lowerBounds) lowerBounds = dateTime;
+	});
+	//console.log("Lower Bounds: " + lowerBounds);
+	var upperBounds = new Date(Date.now()).getTime();
+	//console.log("Upper Bounds: " + upperBounds);
+	var period = upperBounds - lowerBounds;
+	//console.log("Period:       " + period);
+	var size = Math.floor(period / 600000);
+	//console.log("Size:         " + size);
+
+	for (var i = lowerBounds; i < upperBounds; i += 600000) {
+		var minutes = new Date(i).getMinutes();
+		var hour = new Date(i).getHours();
+		var day = new Date(i).getDate();
+		var month = new Date(i).getMonth() + 1;
+
+		var timeString = 
+		(month < 10 ? "0" + month : month) + "-" + 
+		(day < 10 ? "0" + day : day) + "-" + 
+		(hour < 10 ? "0" + hour : hour) + ":" + 
+		(minutes < 10 ? "0" + minutes : minutes);
+
+		chartData.labels.push(timeString);
+		chartData.datasets[0].data.push(0);
+	}
+
+	data.Items.forEach(item => {
+		if (item.creativeId == campaigns[0].creativeId)
+			chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
+	});
 };
 
 function json2table(json) {
