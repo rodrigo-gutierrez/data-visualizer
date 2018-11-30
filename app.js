@@ -4,21 +4,24 @@ const request = require("request");
 
 const port = process.env.PORT || 3000;
 
+var data;
+var campaigns = [];
+
+var chartData = {
+	labels: [],
+    datasets: [{
+		label: "Impressions per Interval (10 min)",
+		backgroundColor: "rgb(255, 99, 132)",
+		borderColor: "rgb(255, 99, 132)",
+		data: []
+    }]
+};
+
 const server = http.createServer((req, res) => {
 	res.statusCode = 200;
 	res.setHeader("Content-Type", "text/html");
 
 	const input = fs.readFileSync("index.html", "utf-8");
-
-	const chartData = {
-		labels: ["January", "February", "March", "April", "May", "June", "July"],
-	    datasets: [{
-			label: "My First dataset",
-			backgroundColor: "rgb(255, 99, 132)",
-			borderColor: "rgb(255, 99, 132)",
-			data: [0, 10, 5, 2, 20, 30, 45],
-	    }]
-	};	
 
 	var result = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
 	
