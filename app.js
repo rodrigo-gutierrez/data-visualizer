@@ -56,11 +56,11 @@ var data;
 
 // configure the request
 const options = {
-	url: "https://hgy62pa5ib.execute-api.ap-northeast-1.amazonaws.com/default/mawariRecordGetter",
+	url: "https://hgy62pa5ib.execute-api.ap-northeast-1.amazonaws.com/default/mawariReportGetter",
 	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
-		"x-api-key": "MPvWsooXt38PmDRGDIJnP8YQczQ2FquG3euSnxAU"
+		"x-api-key": "AL7NxngP8h19POfGnDXto9oGmgdXE2kz2yTnzhtl"
 	}
 };
 
