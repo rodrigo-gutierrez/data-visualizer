@@ -99,11 +99,13 @@ function generateTimeline() {
 	var size = Math.floor(period / 600000);
 	//console.log("Size:         " + size);
 
-	for (var i = lowerBounds; i < upperBounds; i += 600000) {
-		var minutes = new Date(i).getMinutes();
-		var hour = new Date(i).getHours();
-		var day = new Date(i).getDate();
-		var month = new Date(i).getMonth() + 1;
+	var timeStep = lowerBounds;
+
+	for (var i = 0; i < size; i++) {
+		var minutes = new Date(timeStep).getMinutes();
+		var hour = new Date(timeStep).getHours();
+		var day = new Date(timeStep).getDate();
+		var month = new Date(timeStep).getMonth() + 1;
 
 		var timeString = 
 		(month < 10 ? "0" + month : month) + "-" + 
@@ -113,6 +115,8 @@ function generateTimeline() {
 
 		chartData.labels.push(timeString);
 		chartData.datasets[0].data.push(0);
+
+		timeStep += 600000;
 	}
 
 	data.Items.forEach(item => {
