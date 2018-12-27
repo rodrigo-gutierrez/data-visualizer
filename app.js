@@ -10,7 +10,7 @@ var campaigns = [];
 var chartData = {
 	labels: [],
     datasets: [{
-		label: "Impressions per Interval (10 min)",
+		label: "Impressions per Interval",
 		backgroundColor: "rgb(255, 99, 132)",
 		borderColor: "rgb(255, 99, 132)",
 		data: []
