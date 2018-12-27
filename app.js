@@ -72,6 +72,8 @@ function Campaign(creativeId) {
 };
 
 function sortCampaigns() {
+	campaigns = [];
+
 	data.Items.forEach(item => {
 		var campaign = campaigns.find(c => c.creativeId == item.creativeId);
         if (campaign == null) {
