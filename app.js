@@ -150,7 +150,7 @@ function arrangeEvents(eventsData, creative) {
 
 	// NOT correct place for this
 	if (creatives.length > 0) {
-		//generateTimeline();
+		generateTimeline();
 		generateDoughnut();
 		console.log("Processing done");
 	}
@@ -160,7 +160,7 @@ function generateTimeline() {
 	chartData.labels = [];
 	chartData.datasets[0].data = [];
 
-	var dateTimes = data.Items.map(d => new Date(d.dateTime).getTime());
+	var dateTimes = creatives[0].events.map(d => new Date(d.dateTime).getTime());
 	var lowerBounds = dateTimes[0];
 	dateTimes.forEach(dateTime => {
 		if (dateTime < lowerBounds) lowerBounds = dateTime;
@@ -193,9 +193,8 @@ function generateTimeline() {
 		timeStep += 600000;
 	}
 
-	data.Items.forEach(item => {
-		if (item.creativeId == campaigns[0].creativeId)
-			chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
+	creatives[0].events.forEach(item => {
+		chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
 	});
 };
 
