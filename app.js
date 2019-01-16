@@ -36,8 +36,19 @@ server.listen(port, () => {
 });
 
 // configure the request
-const options = {
-	url: "https://hgy62pa5ib.execute-api.ap-northeast-1.amazonaws.com/default/mawariReportGetter",
+const getCreativesOptions = {
+	url: "https://hgy62pa5ib.execute-api.ap-northeast-1.amazonaws.com/default/mawariReportGetter/creative",
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"x-api-key": "AL7NxngP8h19POfGnDXto9oGmgdXE2kz2yTnzhtl"
+		// need to read this from un-committed file later
+	}
+};
+
+// configure the request
+const getEventsOptions = {
+	url: "",
 	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
@@ -47,13 +58,13 @@ const options = {
 };
 
 // request loop
-(function requestLoop() {
-	request(options, function (error, response, body) {
+(function getCreativesLoop() {
+	request(getCreativesOptions, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 	        data = JSON.parse(body);
 	        console.log("ScannedCount: " + data.ScannedCount);
 	        sortCampaigns();
-	        generateTimeline();
+	        //generateTimeline();
 	        console.log("Processing done");
 	    }
 	    else {
@@ -61,11 +72,12 @@ const options = {
 	    	data = null;
 	    }
 	});
-	setTimeout(requestLoop, 600000);
+	setTimeout(getCreativesLoop, 600000);
 })();
 
-function Campaign(creativeId) {
+function Campaign(creativeId, name) {
 	this.creativeId = creativeId;
+	this.name = name;
 	this.impressionCount = 0;
 	this.interactionCount = 0;
 	this.clickCount = 0;
@@ -77,13 +89,13 @@ function sortCampaigns() {
 	data.Items.forEach(item => {
 		var campaign = campaigns.find(c => c.creativeId == item.creativeId);
         if (campaign == null) {
-            campaigns.push(new Campaign(item.creativeId));
+            campaigns.push(new Campaign(item.creativeId, item.name));
             campaign = campaigns[campaigns.length - 1];
         }
 
-        campaign.impressionCount += item.impressionCount;
-        campaign.interactionCount += item.interactionCount;
-        campaign.clickCount += item.clickCount;
+        //campaign.impressionCount += item.impressionCount;
+        //campaign.interactionCount += item.interactionCount;
+        //campaign.clickCount += item.clickCount;
 	});	
 };
 
