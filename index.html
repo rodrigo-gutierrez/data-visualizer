@@ -7,16 +7,24 @@
 	<h1>Mawari Data Visualizer</h1>
 	<h2>Impressions Timeline</h2>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
-	<div>
+	<div style="width: 1200px">
 		<canvas id="chart1"></canvas>
 	</div>
-	<h2>Campaigns</h2>
-	<div>
-		{{table}}
-	</div>
-	<div>
-		<canvas id="chart2"></canvas>
-	</div>
+	<h2>Creatives</h2>
+	<table>
+		<tr>
+			<td style="vertical-align: top;">
+				<div style="width: 600px;">
+					{{table}}
+				</div>
+			</td>
+			<td style="vertical-align: top;">
+				<div style="height: 600px; width: 600px;">
+					<canvas id="chart2"></canvas>
+				</div>
+			</td>
+		</tr>
+	</table>
 	<script>
 		var ctx1 = document.getElementById("chart1").getContext("2d");
 		var chart = new Chart(ctx1, {

@@ -20,7 +20,7 @@ var chartData = {
 var doughnutData = {
 	labels: ["Impressions", "Interactions", "Clicks"],
 	datasets: [{
-		label: "Impressions Breakdown",
+		label: "Event Count",
 		backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f"],
 		data: []
 	}]
