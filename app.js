@@ -5,16 +5,25 @@ const request = require("request");
 const port = process.env.PORT || 3000;
 
 var data;
-var campaigns = [];
+var creatives = [];
 
 var chartData = {
 	labels: [],
-    datasets: [{
+	datasets: [{
 		label: "Impressions per Interval",
 		backgroundColor: "rgb(255, 99, 132)",
 		borderColor: "rgb(255, 99, 132)",
 		data: []
-    }]
+	}]
+};
+
+var doughnutData = {
+	labels: ["Impressions", "Interactions", "Clicks"],
+	datasets: [{
+		label: "Impressions Breakdown",
+		backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f"],
+		data: []
+	}]
 };
 
 const server = http.createServer((req, res) => {
@@ -23,11 +32,21 @@ const server = http.createServer((req, res) => {
 
 	const input = fs.readFileSync("index.html", "utf-8");
 
-	var result = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
+	var addChart = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
 	
-	var addTable = result.replace("{{table}}", json2table(campaigns));
+	var addTable = addChart.replace("{{table}}", json2table(creatives.map(c => { 
+		return { 
+			creativeId: c.creativeId,
+			name: c.name,
+			impressionCount: c.impressionCount,
+			interactionCount: c.interactionCount,
+			clickCount: c.clickCount
+		};
+	})));
 
-	res.write(addTable);
+	var addDoughnut = addTable.replace("\"{{doughnutData}}\"", JSON.stringify(doughnutData));
+
+	res.write(addDoughnut);
 	res.end();
 });
 
@@ -61,42 +80,80 @@ const getEventsOptions = {
 (function getCreativesLoop() {
 	request(getCreativesOptions, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
-	        data = JSON.parse(body);
-	        console.log("ScannedCount: " + data.ScannedCount);
-	        sortCampaigns();
-	        //generateTimeline();
-	        console.log("Processing done");
-	    }
-	    else {
-	    	console.log(response.statusCode + ": " + error);
-	    	data = null;
-	    }
+			const creativesData = JSON.parse(body);
+			console.log("Fetched: " + creativesData.Count + " Creative IDs");
+			if (creativesData.Count > 0) arrangeCreatives(creativesData);
+			if (creatives.length > 0) getEvents();
+		}
+		else {
+			console.log(response.statusCode + ": " + error);
+		}
 	});
 	setTimeout(getCreativesLoop, 600000);
 })();
 
-function Campaign(creativeId, name) {
+function Creative(creativeId, name) {
 	this.creativeId = creativeId;
 	this.name = name;
 	this.impressionCount = 0;
 	this.interactionCount = 0;
 	this.clickCount = 0;
+	this.events = [];
 };
 
-function sortCampaigns() {
-	campaigns = [];
+function Report(reportId, creativeId, dateTime, impressionCount, interactionCount, clickCount) {
+	this.reportId = reportId;
+	this.creativeId = creativeId;
+	this.dateTime = dateTime;
+	this.impressionCount = impressionCount;
+	this.interactionCount = interactionCount;
+	this.clickCount = clickCount;
+};
 
-	data.Items.forEach(item => {
-		var campaign = campaigns.find(c => c.creativeId == item.creativeId);
-        if (campaign == null) {
-            campaigns.push(new Campaign(item.creativeId, item.name));
-            campaign = campaigns[campaigns.length - 1];
-        }
+function arrangeCreatives(creativesData) {
+	creatives = [];
 
-        //campaign.impressionCount += item.impressionCount;
-        //campaign.interactionCount += item.interactionCount;
-        //campaign.clickCount += item.clickCount;
+	creativesData.Items.forEach(item => {
+		var creative = creatives.find(c => c.creativeId == item.creativeId);
+		if (creative == null) {
+			creatives.push(new Creative(item.creativeId, item.name));
+			creative = creatives[creatives.length - 1];
+		}
 	});	
+};
+
+function getEvents() {
+	creatives.forEach(item => {
+		getEventsOptions.url = getCreativesOptions.url + "/" + item.creativeId;
+		request(getEventsOptions, function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+				const eventsData = JSON.parse(body);
+				console.log(item.creativeId + ": fetched " + eventsData.Count + " reports");
+				if (eventsData.Count > 0) arrangeEvents(eventsData, item);
+			}
+			else {
+				console.log(response.statusCode + ": " + error);
+			}
+		});
+	});
+};
+
+function arrangeEvents(eventsData, creative) {
+	creative.events = [];
+
+	eventsData.Items.forEach(item => {
+		creative.events.push(new Report(item.reportId, item.creativeId, item.dateTime, item.impressionCount, item.interactionCount, item.clickCount));
+		creative.impressionCount += item.impressionCount;
+		creative.interactionCount += item.interactionCount;
+		creative.clickCount += item.clickCount;
+	});
+
+	// NOT correct place for this
+	if (creatives.length > 0) {
+		//generateTimeline();
+		generateDoughnut();
+		console.log("Processing done");
+	}
 };
 
 function generateTimeline() {
@@ -140,6 +197,10 @@ function generateTimeline() {
 		if (item.creativeId == campaigns[0].creativeId)
 			chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
 	});
+};
+
+function generateDoughnut() {
+	doughnutData.datasets[0].data = [creatives[0].impressionCount, creatives[0].interactionCount, creatives[0].clickCount];
 };
 
 function json2table(json) {

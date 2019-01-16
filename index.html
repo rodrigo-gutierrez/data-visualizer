@@ -7,10 +7,19 @@
 	<h1>Mawari Data Visualizer</h1>
 	<h2>Impressions Timeline</h2>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
-	<canvas id="chart1"></canvas>
+	<div>
+		<canvas id="chart1"></canvas>
+	</div>
+	<h2>Campaigns</h2>
+	<div>
+		{{table}}
+	</div>
+	<div>
+		<canvas id="chart2"></canvas>
+	</div>
 	<script>
-		var ctx = document.getElementById("chart1").getContext("2d");
-		var chart = new Chart(ctx, {
+		var ctx1 = document.getElementById("chart1").getContext("2d");
+		var chart = new Chart(ctx1, {
 	    	// The type of chart we want to create
 	    	type: "line",
 
@@ -20,10 +29,18 @@
     		// Configuration options go here
     		options: {}
 		});
+
+		var ctx2 = document.getElementById("chart2").getContext("2d");
+		var doughnut = new Chart(ctx2, {
+			// The type of chart we want to create
+	    	type: "doughnut",
+
+	    	// The data for our dataset
+	    	data: "{{doughnutData}}",
+
+    		// Configuration options go here
+    		options: {}
+		});
 	</script>
-	<h2>Campaigns</h2>
-	<div>
-		{{table}}
-	</div>
 </body>
 </html>
