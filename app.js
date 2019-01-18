@@ -25,15 +25,6 @@ var tableData = [];
 
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
-var doughnutData = {
-	labels: ["Impressions", "Interactions", "Clicks"],
-	datasets: [{
-		label: "Event Count",
-		backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f"],
-		data: []
-	}]
-};
-
 app.get("/", (req, res) => {
 	res.statusCode = 200;
 	res.setHeader("Content-Type", "text/html");
@@ -44,9 +35,9 @@ app.get("/", (req, res) => {
 	
 	var addTable = addChart.replace("{{table}}", json2table(tableData));
 
-	var addDoughnut = addTable.replace("\"{{doughnutData}}\"", JSON.stringify(doughnutData));
+	//var addDoughnut = addTable.replace("\"{{doughnutData}}\"", JSON.stringify(doughnutData));
 
-	res.write(addDoughnut);
+	res.write(addTable);
 	res.end();
 });
 
@@ -169,7 +160,7 @@ function arrangeEvents(eventsData, creative) {
 	// NOT correct place for this
 	if (creatives.length > 0) {
 		generateTimeline();
-		generateDoughnut();
+		//generateDoughnut();
 		updateTable();
 		console.log("Processing done");
 	}

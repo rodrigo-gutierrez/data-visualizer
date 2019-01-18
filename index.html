@@ -36,18 +36,40 @@
 
     		// Configuration options go here
     		options: {}
-		});
+    	});
 
-		var ctx2 = document.getElementById("chart2").getContext("2d");
-		var doughnut = new Chart(ctx2, {
-			// The type of chart we want to create
-	    	type: "doughnut",
+		var doughnutData = {
+			labels: ["Impressions", "Interactions", "Clicks"],
+			datasets: [{
+				label: "Event Count",
+				backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f"],
+				data: []
+			}]
+		};
 
-	    	// The data for our dataset
-	    	data: "{{doughnutData}}",
+		const creativeDataURL = "http://localhost:3000/000";
+		const params = {
+			method: "GET"
+		};
 
-    		// Configuration options go here
-    		options: {}
+		fetch(creativeDataURL, params).then(data => {
+			return data.json();
+		}).then(res => {
+			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
+
+			var ctx2 = document.getElementById("chart2").getContext("2d");
+			var doughnut = new Chart(ctx2, {
+				// The type of chart we want to create
+				type: "doughnut",
+
+		    	// The data for our dataset
+		    	data: doughnutData,
+
+	    		// Configuration options go here
+	    		options: {}
+	    	});
+		}).catch(error => {
+			console.log(error);
 		});
 	</script>
 </body>
