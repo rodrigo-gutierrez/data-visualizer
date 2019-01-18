@@ -26,17 +26,15 @@
 		</tr>
 	</table>
 	<script>
-		var ctx1 = document.getElementById("chart1").getContext("2d");
-		var chart = new Chart(ctx1, {
-	    	// The type of chart we want to create
-	    	type: "line",
-
-	    	// The data for our dataset
-	    	data: "{{chartData}}",
-
-    		// Configuration options go here
-    		options: {}
-    	});
+		var chartData = {
+			labels: [],
+			datasets: [{
+				label: "Impressions per Interval",
+				backgroundColor: "rgb(255, 99, 132)",
+				borderColor: "rgb(255, 99, 132)",
+				data: []
+			}]
+		};
 
 		var doughnutData = {
 			labels: ["Impressions", "Interactions", "Clicks"],
@@ -55,7 +53,20 @@
 		fetch(creativeDataURL, params).then(data => {
 			return data.json();
 		}).then(res => {
-			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
+			generateTimeline(res);
+			generateDoughnut(res);
+
+			var ctx1 = document.getElementById("chart1").getContext("2d");
+			var chart = new Chart(ctx1, {
+		    	// The type of chart we want to create
+		    	type: "line",
+
+		    	// The data for our dataset
+		    	data: chartData,
+
+	    		// Configuration options go here
+	    		options: {}
+	    	});
 
 			var ctx2 = document.getElementById("chart2").getContext("2d");
 			var doughnut = new Chart(ctx2, {
@@ -71,6 +82,52 @@
 		}).catch(error => {
 			console.log(error);
 		});
+
+		function generateDoughnut(res) {
+			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
+		};
+
+		function generateTimeline(res) {
+			chartData.labels = [];
+			chartData.datasets[0].data = [];
+
+			var dateTimes = res.events.map(d => new Date(d.dateTime).getTime());
+			var lowerBounds = dateTimes[0];
+			dateTimes.forEach(dateTime => {
+				if (dateTime < lowerBounds) lowerBounds = dateTime;
+			});
+			//console.log("Lower Bounds: " + lowerBounds);
+			var upperBounds = new Date(Date.now()).getTime();
+			//console.log("Upper Bounds: " + upperBounds);
+			var period = upperBounds - lowerBounds;
+			//console.log("Period:       " + period);
+			var size = Math.floor(period / 600000);
+			//console.log("Size:         " + size);
+
+			var timeStep = lowerBounds;
+
+			for (var i = 0; i < size; i++) {
+				var minutes = new Date(timeStep).getMinutes();
+				var hour = new Date(timeStep).getHours();
+				var day = new Date(timeStep).getDate();
+				var month = new Date(timeStep).getMonth() + 1;
+
+				var timeString = 
+				(month < 10 ? "0" + month : month) + "-" + 
+				(day < 10 ? "0" + day : day) + "-" + 
+				(hour < 10 ? "0" + hour : hour) + ":" + 
+				(minutes < 10 ? "0" + minutes : minutes);
+
+				chartData.labels.push(timeString);
+				chartData.datasets[0].data.push(0);
+
+				timeStep += 600000;
+			}
+
+			res.events.forEach(item => {
+				chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
+			});
+		};
 	</script>
 </body>
 </html>

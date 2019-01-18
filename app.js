@@ -10,17 +10,6 @@ const port = process.env.PORT || 3000;
 
 var data;
 var creatives = [];
-
-var chartData = {
-	labels: [],
-	datasets: [{
-		label: "Impressions per Interval",
-		backgroundColor: "rgb(255, 99, 132)",
-		borderColor: "rgb(255, 99, 132)",
-		data: []
-	}]
-};
-
 var tableData = [];
 
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
@@ -30,12 +19,8 @@ app.get("/", (req, res) => {
 	res.setHeader("Content-Type", "text/html");
 
 	const input = fs.readFileSync(path.join(__dirname, "public", "index.html"), "utf-8");
-
-	var addChart = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
 	
-	var addTable = addChart.replace("{{table}}", json2table(tableData));
-
-	//var addDoughnut = addTable.replace("\"{{doughnutData}}\"", JSON.stringify(doughnutData));
+	var addTable = input.replace("{{table}}", json2table(tableData));
 
 	res.write(addTable);
 	res.end();
@@ -159,8 +144,6 @@ function arrangeEvents(eventsData, creative) {
 
 	// NOT correct place for this
 	if (creatives.length > 0) {
-		generateTimeline();
-		//generateDoughnut();
 		updateTable();
 		console.log("Processing done");
 	}
@@ -176,52 +159,6 @@ function updateTable() {
 			clickCount: c.clickCount
 		};
 	});
-};
-
-function generateTimeline() {
-	chartData.labels = [];
-	chartData.datasets[0].data = [];
-
-	var dateTimes = creatives[0].events.map(d => new Date(d.dateTime).getTime());
-	var lowerBounds = dateTimes[0];
-	dateTimes.forEach(dateTime => {
-		if (dateTime < lowerBounds) lowerBounds = dateTime;
-	});
-	//console.log("Lower Bounds: " + lowerBounds);
-	var upperBounds = new Date(Date.now()).getTime();
-	//console.log("Upper Bounds: " + upperBounds);
-	var period = upperBounds - lowerBounds;
-	//console.log("Period:       " + period);
-	var size = Math.floor(period / 600000);
-	//console.log("Size:         " + size);
-
-	var timeStep = lowerBounds;
-
-	for (var i = 0; i < size; i++) {
-		var minutes = new Date(timeStep).getMinutes();
-		var hour = new Date(timeStep).getHours();
-		var day = new Date(timeStep).getDate();
-		var month = new Date(timeStep).getMonth() + 1;
-
-		var timeString = 
-		(month < 10 ? "0" + month : month) + "-" + 
-		(day < 10 ? "0" + day : day) + "-" + 
-		(hour < 10 ? "0" + hour : hour) + ":" + 
-		(minutes < 10 ? "0" + minutes : minutes);
-
-		chartData.labels.push(timeString);
-		chartData.datasets[0].data.push(0);
-
-		timeStep += 600000;
-	}
-
-	creatives[0].events.forEach(item => {
-		chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
-	});
-};
-
-function generateDoughnut() {
-	doughnutData.datasets[0].data = [creatives[0].impressionCount, creatives[0].interactionCount, creatives[0].clickCount];
 };
 
 function json2table(json) {
