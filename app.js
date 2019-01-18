@@ -19,6 +19,8 @@ var chartData = {
 	}]
 };
 
+var tableData = [];
+
 var doughnutData = {
 	labels: ["Impressions", "Interactions", "Clicks"],
 	datasets: [{
@@ -36,15 +38,7 @@ app.get("/", (req, res) => {
 
 	var addChart = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
 	
-	var addTable = addChart.replace("{{table}}", json2table(creatives.map(c => { 
-		return { 
-			creativeId: c.creativeId,
-			name: c.name,
-			impressionCount: c.impressionCount,
-			interactionCount: c.interactionCount,
-			clickCount: c.clickCount
-		};
-	})));
+	var addTable = addChart.replace("{{table}}", json2table(tableData));
 
 	var addDoughnut = addTable.replace("\"{{doughnutData}}\"", JSON.stringify(doughnutData));
 
@@ -121,7 +115,7 @@ function arrangeCreatives(creativesData) {
 			creatives.push(new Creative(item.creativeId, item.name));
 			creative = creatives[creatives.length - 1];
 		}
-	});	
+	});
 };
 
 function getEvents() {
@@ -154,8 +148,21 @@ function arrangeEvents(eventsData, creative) {
 	if (creatives.length > 0) {
 		generateTimeline();
 		generateDoughnut();
+		updateTable();
 		console.log("Processing done");
 	}
+};
+
+function updateTable() {
+	tableData = creatives.map(c => { 
+		return { 
+			creativeId: c.creativeId,
+			name: c.name,
+			impressionCount: c.impressionCount,
+			interactionCount: c.interactionCount,
+			clickCount: c.clickCount
+		};
+	});
 };
 
 function generateTimeline() {
