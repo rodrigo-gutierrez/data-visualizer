@@ -2,8 +2,8 @@ const http = require("http");
 const fs = require("fs");
 const request = require("request");
 const express = require("express");
-const app = express();
 
+const app = express();
 const port = process.env.PORT || 3000;
 
 var data;
@@ -28,7 +28,7 @@ var doughnutData = {
 	}]
 };
 
-const server = http.createServer((req, res) => {
+app.get("/", (req, res) => {
 	res.statusCode = 200;
 	res.setHeader("Content-Type", "text/html");
 
@@ -52,7 +52,7 @@ const server = http.createServer((req, res) => {
 	res.end();
 });
 
-server.listen(port, () => {
+app.listen(port, () => {
 	console.log("Mawari Data Visualizer Node.js Server now running and listening on port " + port);
 });
 
