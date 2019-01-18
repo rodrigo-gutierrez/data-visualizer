@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "chart.js": "2.7.3",
+    "express": "4.16.4",
     "moment": "2.22.2",
-    "request": "2.88.0"
+    "request": "2.88.0",
+    "serve-favicon": "2.5.0"
   }
 }
