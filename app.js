@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 	res.statusCode = 200;
 	res.setHeader("Content-Type", "text/html");
 
-	const input = fs.readFileSync("index.html", "utf-8");
+	const input = fs.readFileSync(path.join(__dirname, "public", "index.html"), "utf-8");
 
 	var addChart = input.replace("\"{{chartData}}\"", JSON.stringify(chartData));
 	
