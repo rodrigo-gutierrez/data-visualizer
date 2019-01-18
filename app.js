@@ -1,7 +1,9 @@
 const http = require("http");
 const fs = require("fs");
+const path = require("path");
 const request = require("request");
 const express = require("express");
+const favicon = require("serve-favicon");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,6 +22,8 @@ var chartData = {
 };
 
 var tableData = [];
+
+app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
 var doughnutData = {
 	labels: ["Impressions", "Interactions", "Clicks"],
