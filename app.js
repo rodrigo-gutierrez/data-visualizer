@@ -46,6 +46,24 @@ app.get("/", (req, res) => {
 	res.end();
 });
 
+app.get("/:creativeId", (req, res) => {
+	console.log("Received GET request with parameter " + req.params.creativeId);
+
+	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
+	if (creative == null) {
+		res.statusCode == 200;
+		res.setHeader("Content-Type", "text/html");
+		res.write("No creative found matching " + req.params.creativeId);
+		res.end();
+	}
+	else {
+		res.statusCode == 200;
+		res.setHeader("Content-Type", "application/json");
+		res.write(JSON.stringify(creative));
+		res.end();
+	}
+});
+
 app.listen(port, () => {
 	console.log("Mawari Data Visualizer Node.js Server now running and listening on port " + port);
 });
