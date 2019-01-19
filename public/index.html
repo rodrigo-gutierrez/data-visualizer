@@ -74,6 +74,9 @@
 		function generateDoughnut(res) {
 			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
+			const $canvas = $("#chart2");
+			$("#chart2").after('<canvas id="chart2"></canvas>');
+			$canvas.remove();
 			var ctx2 = document.getElementById("chart2").getContext("2d");
 			var doughnut = new Chart(ctx2, {
 				// The type of chart we want to create
