@@ -7,6 +7,7 @@
 	<h1>Mawari Data Visualizer</h1>
 	<h2>Impressions Timeline</h2>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
 	<div style="width: 1200px">
 		<canvas id="chart1"></canvas>
 	</div>
@@ -15,7 +16,7 @@
 		<tr>
 			<td style="vertical-align: top;">
 				<div style="width: 600px;">
-					{{table}}
+					<table class="table-data"></table>
 				</div>
 			</td>
 			<td style="vertical-align: top;">
@@ -26,6 +27,12 @@
 		</tr>
 	</table>
 	<script>
+		const creativeTableURL = "/creatives";
+
+		fetch(creativeTableURL).then(res => res.json()).then(data => {
+			renderTable(data);
+		});
+
 		var chartData = {
 			labels: [],
 			datasets: [{
@@ -45,28 +52,8 @@
 			}]
 		};
 
-		const creativeDataURL = "http://localhost:3000/000";
-		const params = {
-			method: "GET"
-		};
-
-		fetch(creativeDataURL, params).then(data => {
-			return data.json();
-		}).then(res => {
-			generateTimeline(res);
-			generateDoughnut(res);
-
-			var ctx1 = document.getElementById("chart1").getContext("2d");
-			var chart = new Chart(ctx1, {
-		    	// The type of chart we want to create
-		    	type: "line",
-
-		    	// The data for our dataset
-		    	data: chartData,
-
-	    		// Configuration options go here
-	    		options: {}
-	    	});
+		function generateDoughnut(res) {
+			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
 			var ctx2 = document.getElementById("chart2").getContext("2d");
 			var doughnut = new Chart(ctx2, {
@@ -79,12 +66,6 @@
 	    		// Configuration options go here
 	    		options: {}
 	    	});
-		}).catch(error => {
-			console.log(error);
-		});
-
-		function generateDoughnut(res) {
-			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 		};
 
 		function generateTimeline(res) {
@@ -126,6 +107,49 @@
 
 			res.events.forEach(item => {
 				chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
+			});
+
+			var ctx1 = document.getElementById("chart1").getContext("2d");
+			var chart = new Chart(ctx1, {
+		    	// The type of chart we want to create
+		    	type: "line",
+
+		    	// The data for our dataset
+		    	data: chartData,
+
+	    		// Configuration options go here
+	    		options: {}
+	    	});
+		};
+
+		function showCreative (creativeId) {
+			console.log(creativeId);
+
+			const creativeDataURL = "/creatives/" + creativeId;
+
+			fetch(creativeDataURL).then(data => data.json()).then(res => {
+				generateTimeline(res);
+				generateDoughnut(res);
+
+				// regenerate charts
+			}).catch(error => {
+				console.log(error);
+			});
+		};
+
+		function renderTable(tableData) {
+			var $table = $(".table-data");
+
+			var cols = Object.keys(tableData[0]);
+			$table.append("<thead><tr>" + cols.map(col => "<th>" + col + "</th>").join("") + "</tr></thead>");
+
+
+			tableData.map(function(row) {
+				var cols = Object.values(row);
+				const $row = $("<tr>" + cols.map(col => "<td>" + col + "</td>").join("")  + "</tr>");
+				const $button = $("<button>View</button>").click(e => showCreative(row.creativeId));
+				$row.append($button);
+				$table.append($row);
 			});
 		};
 	</script>

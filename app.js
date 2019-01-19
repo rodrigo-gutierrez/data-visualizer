@@ -15,32 +15,26 @@ var tableData = [];
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
 app.get("/", (req, res) => {
-	res.statusCode = 200;
-	res.setHeader("Content-Type", "text/html");
-
+	// change to async
 	const input = fs.readFileSync(path.join(__dirname, "public", "index.html"), "utf-8");
-	
-	var addTable = input.replace("{{table}}", json2table(tableData));
 
-	res.write(addTable);
-	res.end();
+	res.send(input);
 });
 
-app.get("/:creativeId", (req, res) => {
+app.get("/creatives", (req, res) => {
+	res.json(tableData);
+});
+
+app.get("/creatives/:creativeId", (req, res) => {
 	console.log("Received GET request with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
-		res.statusCode == 200;
-		res.setHeader("Content-Type", "text/html");
-		res.write("No creative found matching " + req.params.creativeId);
-		res.end();
+		// change to 404
+		res.send("No creative found matching " + req.params.creativeId);
 	}
 	else {
-		res.statusCode == 200;
-		res.setHeader("Content-Type", "application/json");
-		res.write(JSON.stringify(creative));
-		res.end();
+		res.json(creative);
 	}
 });
 
@@ -159,24 +153,4 @@ function updateTable() {
 			clickCount: c.clickCount
 		};
 	});
-};
-
-function json2table(json) {
-	var cols = Object.keys(json[0]);
-	var headerRow = "";
-	var bodyRows = "";
-
-	cols.map(function(col) {
-		headerRow += "<th>" + col + "</th>";
-	});
-
-	json.map(function(row) {
-		bodyRows += "<tr>";
-		cols.map(function(colName) {
-			bodyRows += "<td>" + row[colName] + "</td>";
-		});
-		bodyRows += "</tr>";
-	});
-
-	return "<table><thead><tr>" + headerRow + "</tr></thead><tbody>" + bodyRows + "</tbody></table>"; 
 };
