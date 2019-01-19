@@ -2,13 +2,30 @@
 <html>
 <head>
 	<title>Mawari Data Visualizer</title>
+	<style type="text/css">
+		.active {
+			background: #eee;
+		}
+		body {
+			width: 100%;
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+		table {
+			width: 100%;
+		}
+		#chart1 {
+			height: 600px;
+			background: #eee;
+		}
+	</style>
 </head>
 <body>
 	<h1>Mawari Data Visualizer</h1>
 	<h2>Impressions Timeline</h2>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
-	<div style="width: 1200px">
+	<div>
 		<canvas id="chart1"></canvas>
 	</div>
 	<h2>Creatives</h2>
@@ -20,7 +37,7 @@
 				</div>
 			</td>
 			<td style="vertical-align: top;">
-				<div style="height: 600px; width: 600px;">
+				<div style="height: 600px;">
 					<canvas id="chart2"></canvas>
 				</div>
 			</td>
@@ -31,6 +48,8 @@
 
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
 			renderTable(data);
+			showCreative(data[0].creativeId);
+			$(".table-data tr:nth-child(2)").addClass("active");
 		});
 
 		var chartData = {
@@ -122,8 +141,11 @@
 	    	});
 		};
 
-		function showCreative (creativeId) {
-			console.log(creativeId);
+		function showCreative (creativeId, e) {
+			if (e) {
+				$("tr").removeClass("active");
+				$(e.target).closest("tr").addClass("active");
+			}
 
 			const creativeDataURL = "/creatives/" + creativeId;
 
@@ -147,7 +169,7 @@
 			tableData.map(function(row) {
 				var cols = Object.values(row);
 				const $row = $("<tr>" + cols.map(col => "<td>" + col + "</td>").join("")  + "</tr>");
-				const $button = $("<button>View</button>").click(e => showCreative(row.creativeId));
+				const $button = $("<button>View</button>").click(e => showCreative(row.creativeId, e));
 				$row.append($button);
 				$table.append($row);
 			});
