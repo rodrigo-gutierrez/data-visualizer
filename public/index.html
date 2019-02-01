@@ -37,14 +37,21 @@
 	<h2>Creatives</h2>
 	<table>
 		<tr>
-			<td style="vertical-align: top;">
-				<div style="width: 800px;">
+			<td style="vertical-align: top; width: 800px;" rowspan="2">
+				<div>
 					<table class="table-data"></table>
 				</div>
 			</td>
-			<td style="vertical-align: top;">
-				<div style="height: 600px;">
+			<td style="vertical-align: top; height: 300px;">
+				<div>
 					<canvas id="chart2"></canvas>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td style="vertical-align: top; height: 300px;">
+				<div>
+					<canvas id="chart3"></canvas>
 				</div>
 			</td>
 		</tr>
@@ -94,6 +101,15 @@
 			}]
 		};
 
+		var colorBreakdownData = {
+			labels: [],
+			datasets: [{
+				label: "Color Breakdown",
+				backgroundColor: [],
+				data: []
+			}]
+		};
+
 		function generateDoughnut(res) {
 			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
@@ -110,6 +126,46 @@
 
 		    	// The data for our dataset
 		    	data: doughnutData,
+
+	    		// Configuration options go here
+	    		options: {}
+	    	});
+		};
+
+		function generateColorBreakdown(res) {
+			// clear data
+			colorBreakdownData.labels = [];
+			colorBreakdownData.datasets[0].data = [];
+			colorBreakdownData.datasets[0].backgroundColor = [];
+
+			// iterate through events, check for variant, if new variant found push, if old variant found increment
+			res.events.forEach(item => {
+				if (item.eventType === "variant") {
+					var variant = colorBreakdownData.labels.find(v => v === item.eventData.id);
+					if (variant != null) {
+						colorBreakdownData.datasets[0].data[colorBreakdownData.labels.indexOf(variant)]++;
+					}
+					else {
+						colorBreakdownData.labels.push(item.eventData.id);
+						colorBreakdownData.datasets[0].data.push(1);
+						colorBreakdownData.datasets[0].backgroundColor.push(item.eventData.id);
+					}
+				}
+			});
+
+			// clean canvas to avoid rendering bug
+			const $canvas = $("#chart3");
+			$("#chart3").after('<canvas id="chart3"></canvas>');
+			$canvas.remove();
+
+			// populate canvas with chart
+			var ctx3 = document.getElementById("chart3").getContext("2d");
+			var doughnut = new Chart(ctx3, {
+				// The type of chart we want to create
+				type: "doughnut",
+
+		    	// The data for our dataset
+		    	data: colorBreakdownData,
 
 	    		// Configuration options go here
 	    		options: {}
@@ -210,6 +266,7 @@
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
 				generateTimeline(res);
 				generateDoughnut(res);
+				generateColorBreakdown(res);
 
 				// regenerate charts
 			}).catch(error => {
