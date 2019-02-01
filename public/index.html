@@ -215,7 +215,7 @@
 	    	});
 		};
 
-		function generateTimeline(res) {
+		function generateTimelines(res) {
 			// clear data
 			impressionData.labels = [];
 			impressionData.datasets[0].data = [];
@@ -334,7 +334,7 @@
 			const creativeDataURL = "/creatives/" + creativeId;
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
-				generateTimeline(res);
+				generateTimelines(res);
 				generateImpressionBreakdown(res);
 				generateVariantBreakdown(res);
 
