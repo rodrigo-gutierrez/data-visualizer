@@ -271,6 +271,10 @@
 				}
 			});
 
+			renderTimeline(chartData);
+		};
+
+		function renderTimeline(data) {
 			// clean canvas to avoid rendering bug
 			const $canvas = $("#chart1");
 			$("#chart1").after('<canvas id="chart1"></canvas>');
@@ -283,7 +287,7 @@
 		    	type: "line",
 
 		    	// The data for our dataset
-		    	data: chartData,
+		    	data: data,
 
 	    		// Configuration options go here
 	    		options: {}
