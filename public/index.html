@@ -212,6 +212,11 @@
 			chartData.datasets[0].data = [];
 			chartData.datasets[1].data = [];
 			chartData.datasets[2].data = [];
+			actionData.labels = [];
+			actionData.datasets[0].data = [];
+			actionData.datasets[1].data = [];
+			actionData.datasets[2].data = [];
+			actionData.datasets[3].data = [];
 
 			// number of data points to show
 			var numDataPoints
@@ -254,6 +259,11 @@
 				chartData.datasets[0].data.push(0);
 				chartData.datasets[1].data.push(0);
 				chartData.datasets[2].data.push(0);
+				actionData.labels.push(timeString);
+				actionData.datasets[0].data.push(0);
+				actionData.datasets[1].data.push(0);
+				actionData.datasets[2].data.push(0);
+				actionData.datasets[3].data.push(0);
 
 				timeStep += stepSize;
 			}
@@ -268,6 +278,18 @@
 				}
 				if (item.eventType === "click-through") {
 					chartData.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
+				if (item.eventType === "rotation") {
+					actionData.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
+				if (item.eventType === "zoom") {
+					actionData.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
+				if (item.eventType === "variant") {
+					actionData.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
+				if (item.eventType === "reset") {
+					actionData.datasets[3].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
 				}
 			});
 
