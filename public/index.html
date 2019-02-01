@@ -43,7 +43,7 @@
 	<h2>Creatives</h2>
 	<table>
 		<tr>
-			<td style="vertical-align: top; width: 800px;" rowspan="2">
+			<td style="vertical-align: top; width: 800px;" rowspan="3">
 				<div>
 					<table class="table-data"></table>
 				</div>
@@ -58,6 +58,13 @@
 			<td style="vertical-align: top; height: 300px;">
 				<div>
 					<canvas id="chart-doughnut-variants"></canvas>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td style="vertical-align: top; height: 600px;">
+				<div>
+					<canvas id="chart-bar-interactions"></canvas>
 				</div>
 			</td>
 		</tr>
@@ -174,6 +181,15 @@
 			}]
 		};
 
+		var interactionTimeData = {
+			labels: ["< 1", "1~2", "2~3", "3~4", "4~5", "5~7", "7~10", "> 10"],
+			datasets: [{
+				label: "Interaction Times (seconds)",
+				backgroundColor: "#3E95CD",
+				data: []
+			}]
+		};
+
 		function generateImpressionBreakdown(res) {
 			impressionBreakdownData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
@@ -233,6 +249,103 @@
 
 	    		// Configuration options go here
 	    		options: {}
+	    	});
+		};
+
+		function Session(sessionId) {
+			this.sessionId = sessionId;
+			this.hasInteraction = false;
+			this.interactionStart = 0;
+			this.interactionEnd = 0;
+			this.events = [];
+		};
+
+		function generateInteractionTimes(data) {
+			//clear data
+			interactionTimeData.datasets[0].data = [];
+
+			for (var i = 0; i < interactionTimeData.labels.length; i++)
+				interactionTimeData.datasets[0].data.push(0);
+
+			const sessions = [];
+
+			data.events.forEach(item => {
+				var session = sessions.find(s => s.sessionId == item.sessionId);
+				if (session == null) {
+					sessions.push(new Session(item.sessionId));
+					sessions[sessions.length - 1].events.push(item);
+				}
+				else {
+					session.events.push(item);
+				}
+			});
+
+			if (sessions.length > 0) {
+				sessions.forEach(session => {
+					// init stuff
+
+					session.events.forEach(event => {
+						if (event.eventType === "first-interaction" || event.eventType === "first-click") {
+							session.hasInteraction = true;
+							session.interactionStart = event.dateTime;
+							session.interactionEnd = event.dateTime;
+						}
+					});
+
+					if (session.hasInteraction) {
+						session.events.forEach(event => {
+							if (event.eventType === "rotation" || event.eventType === "zoom" || event.eventType === "variant" || event.eventType === "reset") {
+								if (event.dateTime > session.interactionEnd) session.interactionEnd = event.dateTime;
+							}
+						});
+					}
+				});
+
+				sessions.forEach(session => {
+					if (session.hasInteraction) {
+						var interactionTime = session.interactionEnd - session.interactionStart;
+
+						if (interactionTime < 1000)
+							interactionTimeData.datasets[0].data[0]++;
+						else if (interactionTime < 2000)
+							interactionTimeData.datasets[0].data[1]++;
+						else if (interactionTime < 3000)
+							interactionTimeData.datasets[0].data[2]++;
+						else if (interactionTime < 4000)
+							interactionTimeData.datasets[0].data[3]++;
+						else if (interactionTime < 5000)
+							interactionTimeData.datasets[0].data[4]++;
+						else if (interactionTime < 7000)
+							interactionTimeData.datasets[0].data[5]++;
+						else if (interactionTime < 10000)
+							interactionTimeData.datasets[0].data[6]++;
+						else 
+							interactionTimeData.datasets[0].data[7]++;
+					}
+				});
+			}
+			else {
+				console.log("ERROR: No sessions generated");
+			}
+
+			// clean canvas to avoid rendering bug
+			const $canvas = $("#chart-bar-interactions");
+			$("#chart-bar-interactions").after("<canvas id=\"chart-bar-interactions\"></canvas>");
+			$canvas.remove();
+
+			// populate canvas with chart
+			var ctx4 = document.getElementById("chart-bar-interactions").getContext("2d");
+			var horizontalBar = new Chart(ctx4, {
+				// The type of chart we want to create
+				type: "horizontalBar",
+
+		    	// The data for our dataset
+		    	data: interactionTimeData,
+
+	    		// Configuration options go here
+	    		options: {
+	    			responsive: true
+	    		}
 	    	});
 		};
 
@@ -373,6 +486,7 @@
 				generateTimelines(res);
 				generateImpressionBreakdown(res);
 				generateVariantBreakdown(res);
+				generateInteractionTimes(res);
 
 				// regenerate charts
 			}).catch(error => {
