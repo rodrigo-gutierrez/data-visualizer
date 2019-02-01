@@ -33,6 +33,8 @@
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
 	<div>
 		<canvas id="chart1"></canvas>
+		<button id="buttonImpressions" class="button">Impressions</button>
+		<button id="buttonActions" class="button">Actions</button>
 	</div>
 	<h2>Creatives</h2>
 	<table>
@@ -58,6 +60,10 @@
 	</table>
 	<script>
 		const creativeTableURL = "/creatives";
+
+		const $buttonImpressions = $("#buttonImpressions").click(e => renderTimeline(chartData));
+
+		const $buttonActions = $("#buttonActions").click(e => renderTimeline(actionData));
 
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
 			renderTable(data);
