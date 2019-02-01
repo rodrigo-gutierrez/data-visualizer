@@ -14,7 +14,7 @@
 		table {
 			width: 100%;
 		}
-		#chart1 {
+		#chart-timeline {
 			height: 600px;
 			background: #eee;
 		}
@@ -35,9 +35,9 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
 	<div>
-		<canvas id="chart1"></canvas>
-		<button id="buttonImpressions" class="button">Impressions</button>
-		<button id="buttonActions" class="button">Actions</button>
+		<canvas id="chart-timeline"></canvas>
+		<button id="button-impressions" class="button">Impressions</button>
+		<button id="button-actions" class="button">Actions</button>
 	</div>
 	<h2>Creatives</h2>
 	<table>
@@ -49,14 +49,14 @@
 			</td>
 			<td style="vertical-align: top; height: 300px;">
 				<div>
-					<canvas id="chart2"></canvas>
+					<canvas id="chart-doughnut-impressions"></canvas>
 				</div>
 			</td>
 		</tr>
 		<tr>
 			<td style="vertical-align: top; height: 300px;">
 				<div>
-					<canvas id="chart3"></canvas>
+					<canvas id="chart-doughnut-variants"></canvas>
 				</div>
 			</td>
 		</tr>
@@ -64,9 +64,9 @@
 	<script>
 		const creativeTableURL = "/creatives";
 
-		const $buttonImpressions = $("#buttonImpressions").click(e => renderTimeline(chartData));
+		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(chartData));
 
-		const $buttonActions = $("#buttonActions").click(e => renderTimeline(actionData));
+		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionData));
 
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
 			renderTable(data);
@@ -157,12 +157,12 @@
 			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
 			// clean canvas to avoid rendering bug
-			const $canvas = $("#chart2");
-			$("#chart2").after('<canvas id="chart2"></canvas>');
+			const $canvas = $("#chart-doughnut-impressions");
+			$("#chart-doughnut-impressions").after("<canvas id=\"chart-doughnut-impressions\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
-			var ctx2 = document.getElementById("chart2").getContext("2d");
+			var ctx2 = document.getElementById("chart-doughnut-impressions").getContext("2d");
 			var doughnut = new Chart(ctx2, {
 				// The type of chart we want to create
 				type: "doughnut",
@@ -197,12 +197,12 @@
 			});
 
 			// clean canvas to avoid rendering bug
-			const $canvas = $("#chart3");
-			$("#chart3").after('<canvas id="chart3"></canvas>');
+			const $canvas = $("#chart-doughnut-variants");
+			$("#chart-doughnut-variants").after("<canvas id=\"chart-doughnut-variants\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
-			var ctx3 = document.getElementById("chart3").getContext("2d");
+			var ctx3 = document.getElementById("chart-doughnut-variants").getContext("2d");
 			var doughnut = new Chart(ctx3, {
 				// The type of chart we want to create
 				type: "doughnut",
@@ -307,12 +307,12 @@
 
 		function renderTimeline(data) {
 			// clean canvas to avoid rendering bug
-			const $canvas = $("#chart1");
-			$("#chart1").after('<canvas id="chart1"></canvas>');
+			const $canvas = $("#chart-timeline");
+			$("#chart-timeline").after("<canvas id=\"chart-timeline\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
-			var ctx1 = document.getElementById("chart1").getContext("2d");
+			var ctx1 = document.getElementById("chart-timeline").getContext("2d");
 			var chart = new Chart(ctx1, {
 		    	// The type of chart we want to create
 		    	type: "line",
