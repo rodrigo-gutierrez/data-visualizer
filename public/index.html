@@ -18,6 +18,12 @@
 			height: 600px;
 			background: #eee;
 		}
+		.table-data {
+			
+		}
+		.table-column {
+			min-width: 90px;
+		}
 	</style>
 </head>
 <body>
@@ -32,7 +38,7 @@
 	<table>
 		<tr>
 			<td style="vertical-align: top;">
-				<div style="width: 600px;">
+				<div style="width: 800px;">
 					<table class="table-data"></table>
 				</div>
 			</td>
@@ -166,7 +172,7 @@
 			var $table = $(".table-data");
 
 			var cols = Object.keys(tableData[0]);
-			$table.append("<thead><tr>" + cols.map(col => "<th>" + col + "</th>").join("") + "</tr></thead>");
+			$table.append("<thead><tr>" + cols.map(col => "<th class=\"table-column\">" + col + "</th>").join("") + "</tr></thead>");
 
 
 			tableData.map(function(row) {
