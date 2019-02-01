@@ -30,8 +30,7 @@ app.get("/creatives/:creativeId", (req, res) => {
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
-		// change to 404
-		res.send("No creative found matching " + req.params.creativeId);
+		res.status(404).send("No creative found matching " + req.params.creativeId);
 	}
 	else {
 		res.json(creative);
