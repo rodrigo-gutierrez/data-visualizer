@@ -80,9 +80,12 @@
 		function generateDoughnut(res) {
 			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
+			// clean canvas to avoid rendering bug
 			const $canvas = $("#chart2");
 			$("#chart2").after('<canvas id="chart2"></canvas>');
 			$canvas.remove();
+
+			// populate canvas with chart
 			var ctx2 = document.getElementById("chart2").getContext("2d");
 			var doughnut = new Chart(ctx2, {
 				// The type of chart we want to create
@@ -137,6 +140,12 @@
 				chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
 			});
 
+			// clean canvas to avoid rendering bug
+			const $canvas = $("#chart1");
+			$("#chart1").after('<canvas id="chart1"></canvas>');
+			$canvas.remove();
+
+			// populate canvas with chart
 			var ctx1 = document.getElementById("chart1").getContext("2d");
 			var chart = new Chart(ctx1, {
 		    	// The type of chart we want to create
