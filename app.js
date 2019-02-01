@@ -30,8 +30,7 @@ app.get("/creatives/:creativeId", (req, res) => {
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
-		// change to 404
-		res.send("No creative found matching " + req.params.creativeId);
+		res.status(404).send("No creative found matching " + req.params.creativeId);
 	}
 	else {
 		res.json(creative);
@@ -55,29 +54,21 @@ const getCreativesOptions = {
 
 // configure the request
 const getEventsOptions = {
-	url: "",
+	url: "https://hgy62pa5ib.execute-api.ap-northeast-1.amazonaws.com/default/mawariEventGetter",
 	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
-		"x-api-key": "AL7NxngP8h19POfGnDXto9oGmgdXE2kz2yTnzhtl"
+		"x-api-key": "DL5qk5uYej22P6wD5KfMV89xy2vUqo9m7IJl27wv"
 		// need to read this from un-committed file later
-	}
+	},
+	timeout: 60000
 };
 
 // request loop
-(function getCreativesLoop() {
-	request(getCreativesOptions, function (error, response, body) {
-		if (!error && response.statusCode == 200) {
-			const creativesData = JSON.parse(body);
-			console.log("Fetched: " + creativesData.Count + " Creative IDs");
-			if (creativesData.Count > 0) arrangeCreatives(creativesData);
-			if (creatives.length > 0) getEvents();
-		}
-		else {
-			console.log(response.statusCode + ": " + error);
-		}
-	});
-	setTimeout(getCreativesLoop, 600000);
+(async function updateLoop() {
+	await getCreatives();
+	await getEvents();
+	setTimeout(updateLoop, 600000);
 })();
 
 function Creative(creativeId, name) {
@@ -89,13 +80,42 @@ function Creative(creativeId, name) {
 	this.events = [];
 };
 
-function Report(reportId, creativeId, dateTime, impressionCount, interactionCount, clickCount) {
-	this.reportId = reportId;
+function Event(itemId, creativeId, sessionId, eventId, eventType, eventData, dateTime) {
+	this.itemId = itemId;
 	this.creativeId = creativeId;
+	this.sessionId = sessionId;
+	this.eventId = eventId;
+	this.eventType = eventType;
+	this.eventData = eventData;
 	this.dateTime = dateTime;
-	this.impressionCount = impressionCount;
-	this.interactionCount = interactionCount;
-	this.clickCount = clickCount;
+};
+
+async function getEvents() {
+	console.log("Beginning Events Table Scan...");
+	request(getEventsOptions, (error, response, body) => {
+		if (!error && response.statusCode == 200) {
+			const eventsData = JSON.parse(body);
+			console.log("Fetched: " + eventsData.Count + " Events");
+			if (eventsData.Count > 0) arrangeEvents(eventsData);
+		}
+		else {
+			console.log(response.statusCode + ": " + error);
+		}
+	});
+};
+
+async function getCreatives() {
+	console.log("Beginning Creatives Table Scan...");
+	request(getCreativesOptions, (error, response, body) => {
+		if (!error && response.statusCode == 200) {
+			const creativesData = JSON.parse(body);
+			console.log("Fetched: " + creativesData.Count + " Creative IDs");
+			if (creativesData.Count > 0) arrangeCreatives(creativesData);
+		}
+		else {
+			console.log(response.statusCode + ": " + error);
+		}
+	});
 };
 
 function arrangeCreatives(creativesData) {
@@ -103,51 +123,41 @@ function arrangeCreatives(creativesData) {
 
 	creativesData.Items.forEach(item => {
 		var creative = creatives.find(c => c.creativeId == item.creativeId);
-		if (creative == null) {
-			creatives.push(new Creative(item.creativeId, item.name));
-			creative = creatives[creatives.length - 1];
+		if (creative == null) creatives.push(new Creative(item.creativeId, item.name));
+	});
+	console.log("Arranging Creatives Done");
+};
+
+function arrangeEvents(eventsData) {
+	console.log("Arranging Events...");
+	eventsData.Items.forEach(item => {
+		var creative = creatives.find(c => c.creativeId == item.creativeId);
+		if (creative != null) {
+			creative.events.push(new Event(item.itemId, item.creativeId, item.sessionId, item.eventId, item.eventType, item.eventData, item.dateTime));
+			if (item.eventType === "impression") creative.impressionCount++;
+			if (item.eventType === "first-interaction" || item.eventType === "first-click") creative.interactionCount++;
+			if (item.eventType === "click-through") creative.clickCount++;
+		}
+		else {
+			console.log("ERROR: creativeId '" + item.creativeId + "' not found");
 		}
 	});
-};
-
-function getEvents() {
-	creatives.forEach(item => {
-		getEventsOptions.url = getCreativesOptions.url + "/" + item.creativeId;
-		request(getEventsOptions, function (error, response, body) {
-			if (!error && response.statusCode == 200) {
-				const eventsData = JSON.parse(body);
-				console.log(item.creativeId + ": fetched " + eventsData.Count + " reports");
-				if (eventsData.Count > 0) arrangeEvents(eventsData, item);
-			}
-			else {
-				console.log(response.statusCode + ": " + error);
-			}
-		});
-	});
-};
-
-function arrangeEvents(eventsData, creative) {
-	creative.events = [];
-
-	eventsData.Items.forEach(item => {
-		creative.events.push(new Report(item.reportId, item.creativeId, item.dateTime, item.impressionCount, item.interactionCount, item.clickCount));
-		creative.impressionCount += item.impressionCount;
-		creative.interactionCount += item.interactionCount;
-		creative.clickCount += item.clickCount;
-	});
+	console.log("Arranging Events Done");
 
 	// NOT correct place for this
 	if (creatives.length > 0) {
 		updateTable();
-		console.log("Processing done");
+		//console.log("Processing done");
 	}
 };
 
 function updateTable() {
+	console.log("Updating Cache Table Data...")
 	tableData = creatives.map(c => { 
 		return { 
 			creativeId: c.creativeId,
 			name: c.name,
+			eventCount: c.events.length,
 			impressionCount: c.impressionCount,
 			interactionCount: c.interactionCount,
 			clickCount: c.clickCount
