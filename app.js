@@ -107,6 +107,7 @@ function arrangeCreatives(creativesData) {
 			creative = creatives[creatives.length - 1];
 		}
 	});
+	console.log("Arranging Creatives Done");
 };
 
 function getEvents() {
@@ -128,21 +129,24 @@ function getEvents() {
 function arrangeEvents(eventsData, creative) {
 	creative.events = [];
 
+	console.log("Arranging Events...");
 	eventsData.Items.forEach(item => {
 		creative.events.push(new Report(item.reportId, item.creativeId, item.dateTime, item.impressionCount, item.interactionCount, item.clickCount));
 		creative.impressionCount += item.impressionCount;
 		creative.interactionCount += item.interactionCount;
 		creative.clickCount += item.clickCount;
 	});
+	console.log("Arranging Events Done");
 
 	// NOT correct place for this
 	if (creatives.length > 0) {
 		updateTable();
-		console.log("Processing done");
+		//console.log("Processing done");
 	}
 };
 
 function updateTable() {
+	console.log("Updating Cache Table Data...")
 	tableData = creatives.map(c => { 
 		return { 
 			creativeId: c.creativeId,
