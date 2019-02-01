@@ -60,19 +60,36 @@
 
 		var chartData = {
 			labels: [],
-			datasets: [{
-				label: "Impressions per Interval",
-				backgroundColor: "rgb(255, 99, 132)",
-				borderColor: "rgb(255, 99, 132)",
-				data: []
-			}]
+			datasets: [
+				{
+					label: "Impressions per Interval",
+					backgroundColor: "#3E95CD",
+					borderColor: "#3E95CD",
+					fill: false,
+					data: []
+				},
+				{
+					label: "Interactions per Interval",
+					backgroundColor: "#95CD3E",
+					borderColor: "#95CD3E",
+					fill: false,
+					data: []
+				},
+				{
+					label: "Clicks per Interval",
+					backgroundColor: "#CD3E95",
+					borderColor: "#CD3E95",
+					fill: false,
+					data: []
+				}
+			]
 		};
 
 		var doughnutData = {
 			labels: ["Impressions", "Interactions", "Clicks"],
 			datasets: [{
 				label: "Event Count",
-				backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f"],
+				backgroundColor: ["#3E95CD", "#95CD3E","#CD3E95"],
 				data: []
 			}]
 		};
@@ -102,23 +119,35 @@
 		function generateTimeline(res) {
 			chartData.labels = [];
 			chartData.datasets[0].data = [];
+			chartData.datasets[1].data = [];
+			chartData.datasets[2].data = [];
 
-			var dateTimes = res.events.map(d => new Date(d.dateTime).getTime());
+			// number of data points to show
+			var numDataPoints
+			if (res.events.length > 240) numDataPoints = 240;
+			else numDataPoints = res.events.length;
+
+			// find oldest event
+			const dateTimes = res.events.map(d => new Date(d.dateTime).getTime());
 			var lowerBounds = dateTimes[0];
 			dateTimes.forEach(dateTime => {
 				if (dateTime < lowerBounds) lowerBounds = dateTime;
 			});
-			//console.log("Lower Bounds: " + lowerBounds);
-			var upperBounds = new Date(Date.now()).getTime();
-			//console.log("Upper Bounds: " + upperBounds);
-			var period = upperBounds - lowerBounds;
-			//console.log("Period:       " + period);
-			var size = Math.floor(period / 600000);
-			//console.log("Size:         " + size);
 
+			// set upper bounds to now
+			const upperBounds = new Date(Date.now()).getTime();
+
+			// set total time period to work with
+			const totalBounds = upperBounds - lowerBounds;
+
+			// set time step size
+			const stepSize = Math.floor(totalBounds / numDataPoints);
+			
+			// begin at lower bounds
 			var timeStep = lowerBounds;
 
-			for (var i = 0; i < size; i++) {
+			// generate time labels
+			for (var i = 0; i < numDataPoints; i++) {
 				var minutes = new Date(timeStep).getMinutes();
 				var hour = new Date(timeStep).getHours();
 				var day = new Date(timeStep).getDate();
@@ -132,12 +161,23 @@
 
 				chartData.labels.push(timeString);
 				chartData.datasets[0].data.push(0);
+				chartData.datasets[1].data.push(0);
+				chartData.datasets[2].data.push(0);
 
-				timeStep += 600000;
+				timeStep += stepSize;
 			}
 
+			// sort all events into the time step buckets
 			res.events.forEach(item => {
-				chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds + 60000) / 600000)] += item.impressionCount;
+				if (item.eventType === "impression") {
+					chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
+				if (item.eventType === "first-interaction" || item.eventType === "first-click") {
+					chartData.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
+				if (item.eventType === "click-through") {
+					chartData.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+				}
 			});
 
 			// clean canvas to avoid rendering bug
