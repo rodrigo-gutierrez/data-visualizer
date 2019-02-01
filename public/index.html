@@ -64,17 +64,17 @@
 	<script>
 		const creativeTableURL = "/creatives";
 
-		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(chartData));
+		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(impressionData));
 
 		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionData));
 
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
-			renderTable(data);
+			renderCreativeTable(data);
 			showCreative(data[0].creativeId);
 			$(".table-data tr:nth-child(2)").addClass("active");
 		});
 
-		var chartData = {
+		var impressionData = {
 			labels: [],
 			datasets: [
 				{
@@ -135,7 +135,7 @@
 			]
 		};
 
-		var doughnutData = {
+		var impressionBreakdownData = {
 			labels: ["Impressions", "Interactions", "Clicks"],
 			datasets: [{
 				label: "Event Count",
@@ -144,7 +144,7 @@
 			}]
 		};
 
-		var colorBreakdownData = {
+		var variantBreakdownData = {
 			labels: [],
 			datasets: [{
 				label: "Color Breakdown",
@@ -153,8 +153,8 @@
 			}]
 		};
 
-		function generateDoughnut(res) {
-			doughnutData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
+		function generateImpressionBreakdown(res) {
+			impressionBreakdownData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
 			// clean canvas to avoid rendering bug
 			const $canvas = $("#chart-doughnut-impressions");
@@ -168,30 +168,30 @@
 				type: "doughnut",
 
 		    	// The data for our dataset
-		    	data: doughnutData,
+		    	data: impressionBreakdownData,
 
 	    		// Configuration options go here
 	    		options: {}
 	    	});
 		};
 
-		function generateColorBreakdown(res) {
+		function generateVariantBreakdown(res) {
 			// clear data
-			colorBreakdownData.labels = [];
-			colorBreakdownData.datasets[0].data = [];
-			colorBreakdownData.datasets[0].backgroundColor = [];
+			variantBreakdownData.labels = [];
+			variantBreakdownData.datasets[0].data = [];
+			variantBreakdownData.datasets[0].backgroundColor = [];
 
 			// iterate through events, check for variant, if new variant found push, if old variant found increment
 			res.events.forEach(item => {
 				if (item.eventType === "variant") {
-					var variant = colorBreakdownData.labels.find(v => v === item.eventData.id);
+					var variant = variantBreakdownData.labels.find(v => v === item.eventData.id);
 					if (variant != null) {
-						colorBreakdownData.datasets[0].data[colorBreakdownData.labels.indexOf(variant)]++;
+						variantBreakdownData.datasets[0].data[variantBreakdownData.labels.indexOf(variant)]++;
 					}
 					else {
-						colorBreakdownData.labels.push(item.eventData.id);
-						colorBreakdownData.datasets[0].data.push(1);
-						colorBreakdownData.datasets[0].backgroundColor.push(item.eventData.id);
+						variantBreakdownData.labels.push(item.eventData.id);
+						variantBreakdownData.datasets[0].data.push(1);
+						variantBreakdownData.datasets[0].backgroundColor.push(item.eventData.id);
 					}
 				}
 			});
@@ -208,7 +208,7 @@
 				type: "doughnut",
 
 		    	// The data for our dataset
-		    	data: colorBreakdownData,
+		    	data: variantBreakdownData,
 
 	    		// Configuration options go here
 	    		options: {}
@@ -217,10 +217,10 @@
 
 		function generateTimeline(res) {
 			// clear data
-			chartData.labels = [];
-			chartData.datasets[0].data = [];
-			chartData.datasets[1].data = [];
-			chartData.datasets[2].data = [];
+			impressionData.labels = [];
+			impressionData.datasets[0].data = [];
+			impressionData.datasets[1].data = [];
+			impressionData.datasets[2].data = [];
 			actionData.labels = [];
 			actionData.datasets[0].data = [];
 			actionData.datasets[1].data = [];
@@ -264,10 +264,10 @@
 				(hour < 10 ? "0" + hour : hour) + ":" + 
 				(minutes < 10 ? "0" + minutes : minutes);
 
-				chartData.labels.push(timeString);
-				chartData.datasets[0].data.push(0);
-				chartData.datasets[1].data.push(0);
-				chartData.datasets[2].data.push(0);
+				impressionData.labels.push(timeString);
+				impressionData.datasets[0].data.push(0);
+				impressionData.datasets[1].data.push(0);
+				impressionData.datasets[2].data.push(0);
 				actionData.labels.push(timeString);
 				actionData.datasets[0].data.push(0);
 				actionData.datasets[1].data.push(0);
@@ -280,13 +280,13 @@
 			// sort all events into the time step buckets
 			res.events.forEach(item => {
 				if (item.eventType === "impression") {
-					chartData.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+					impressionData.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
 				}
 				if (item.eventType === "first-interaction" || item.eventType === "first-click") {
-					chartData.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+					impressionData.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
 				}
 				if (item.eventType === "click-through") {
-					chartData.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+					impressionData.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
 				}
 				if (item.eventType === "rotation") {
 					actionData.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
@@ -302,7 +302,7 @@
 				}
 			});
 
-			renderTimeline(chartData);
+			renderTimeline(impressionData);
 		};
 
 		function renderTimeline(data) {
@@ -335,8 +335,8 @@
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
 				generateTimeline(res);
-				generateDoughnut(res);
-				generateColorBreakdown(res);
+				generateImpressionBreakdown(res);
+				generateVariantBreakdown(res);
 
 				// regenerate charts
 			}).catch(error => {
@@ -344,7 +344,7 @@
 			});
 		};
 
-		function renderTable(tableData) {
+		function renderCreativeTable(tableData) {
 			var $table = $(".table-data");
 
 			var cols = Object.keys(tableData[0]);
