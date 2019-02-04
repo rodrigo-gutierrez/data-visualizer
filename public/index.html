@@ -71,7 +71,7 @@
 		</tr>
 	</table>
 	<script>
-		const creativeTableURL = "/creatives";
+		const creativeTableURL = "/creative";
 
 		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(impressionTimeline));
 		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionTimeline));
@@ -517,7 +517,7 @@
 				$(e.target).closest("tr").addClass("active");
 			}
 
-			const creativeDataURL = "/creatives/" + creativeId;
+			const creativeDataURL = "/creative/" + creativeId;
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
 				arrangeSessions(res);

@@ -21,11 +21,11 @@ app.get("/", (req, res) => {
 	res.send(input);
 });
 
-app.get("/creatives", (req, res) => {
+app.get("/creative", (req, res) => {
 	res.json(tableData);
 });
 
-app.get("/creatives/:creativeId", (req, res) => {
+app.get("/creative/:creativeId", (req, res) => {
 	console.log("Received GET request with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
