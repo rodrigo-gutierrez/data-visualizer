@@ -483,10 +483,10 @@
 			const creativeDataURL = "/creatives/" + creativeId;
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
+				generateInteractionTimes(res);
 				generateTimelines(res);
 				generateImpressionBreakdown(res);
 				generateVariantBreakdown(res);
-				generateInteractionTimes(res);
 
 				// regenerate charts
 			}).catch(error => {
