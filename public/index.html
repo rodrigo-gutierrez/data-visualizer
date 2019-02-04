@@ -39,11 +39,12 @@
 		<button id="button-impressions" class="button">Impressions</button>
 		<button id="button-actions" class="button">Actions</button>
 		<button id="button-rates" class="button">Rates</button>
+		<button id="button-interactions" class="button">Interactions</button>
 	</div>
 	<h2>Creatives</h2>
 	<table>
 		<tr>
-			<td style="vertical-align: top; width: 800px;" rowspan="2">
+			<td style="vertical-align: top; width: 800px;" rowspan="3">
 				<div>
 					<table class="table-data"></table>
 				</div>
@@ -61,6 +62,13 @@
 				</div>
 			</td>
 		</tr>
+		<tr>
+			<td style="vertical-align: top; height: 600px;">
+				<div>
+					<canvas id="chart-bar-interactions"></canvas>
+				</div>
+			</td>
+		</tr>
 	</table>
 	<script>
 		const creativeTableURL = "/creatives";
@@ -68,6 +76,11 @@
 		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(impressionData));
 		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionData));
 		const $buttonRates = $("#button-rates").click(e => renderTimeline(rateData));
+		const $buttonInteractions = $("#button-interactions").click(e => renderTimeline(interactionData));
+
+		const maxInteractionTime = 60000;
+
+		var sessions = [];
 
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
 			renderCreativeTable(data);
@@ -96,6 +109,19 @@
 					label: "Clicks per Interval",
 					backgroundColor: "#CD3E95",
 					borderColor: "#CD3E95",
+					fill: false,
+					data: []
+				}
+			]
+		};
+
+		var interactionData = {
+			labels: [],
+			datasets: [
+				{
+					label: "Interaction Time per Interval (seconds)",
+					backgroundColor: "#3E95CD",
+					borderColor: "#3E95CD",
 					fill: false,
 					data: []
 				}
@@ -174,6 +200,15 @@
 			}]
 		};
 
+		var interactionTimeData = {
+			labels: ["< 1", "1~2", "2~3", "3~4", "4~5", "5~7", "7~10", "> 10"],
+			datasets: [{
+				label: "Interaction Times (seconds)",
+				backgroundColor: "#3E95CD",
+				data: []
+			}]
+		};
+
 		function generateImpressionBreakdown(res) {
 			impressionBreakdownData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
@@ -236,6 +271,104 @@
 	    	});
 		};
 
+		function Session(sessionId) {
+			this.sessionId = sessionId;
+			this.hasInteraction = false;
+			this.interactionStart = 0;
+			this.interactionEnd = 0;
+			this.interactionTime = 0;
+			this.events = [];
+		};
+
+		function generateInteractionTimes(data) {
+			//clear data
+			interactionTimeData.datasets[0].data = [];
+
+			for (var i = 0; i < interactionTimeData.labels.length; i++)
+				interactionTimeData.datasets[0].data.push(0);
+
+			sessions = [];
+
+			data.events.forEach(item => {
+				var session = sessions.find(s => s.sessionId == item.sessionId);
+				if (session == null) {
+					sessions.push(new Session(item.sessionId));
+					sessions[sessions.length - 1].events.push(item);
+				}
+				else {
+					session.events.push(item);
+				}
+			});
+
+			if (sessions.length > 0) {
+				sessions.forEach(session => {
+					// init stuff
+
+					session.events.forEach(event => {
+						if (event.eventType === "first-interaction" || event.eventType === "first-click") {
+							session.hasInteraction = true;
+							session.interactionStart = event.dateTime;
+							session.interactionEnd = event.dateTime;
+						}
+					});
+
+					if (session.hasInteraction) {
+						session.events.forEach(event => {
+							if (event.eventType === "rotation" || event.eventType === "zoom" || event.eventType === "variant" || event.eventType === "reset") {
+								if (event.dateTime > session.interactionEnd) session.interactionEnd = event.dateTime;
+							}
+						});
+					}
+				});
+
+				sessions.forEach(session => {
+					if (session.hasInteraction) {
+						session.interactionTime = session.interactionEnd - session.interactionStart;
+
+						if (session.interactionTime < 1000)
+							interactionTimeData.datasets[0].data[0]++;
+						else if (session.interactionTime < 2000)
+							interactionTimeData.datasets[0].data[1]++;
+						else if (session.interactionTime < 3000)
+							interactionTimeData.datasets[0].data[2]++;
+						else if (session.interactionTime < 4000)
+							interactionTimeData.datasets[0].data[3]++;
+						else if (session.interactionTime < 5000)
+							interactionTimeData.datasets[0].data[4]++;
+						else if (session.interactionTime < 7000)
+							interactionTimeData.datasets[0].data[5]++;
+						else if (session.interactionTime < 10000)
+							interactionTimeData.datasets[0].data[6]++;
+						else if (session.interactionTime < maxInteractionTime)
+							interactionTimeData.datasets[0].data[7]++;
+					}
+				});
+			}
+			else {
+				console.log("ERROR: No sessions generated");
+			}
+
+			// clean canvas to avoid rendering bug
+			const $canvas = $("#chart-bar-interactions");
+			$("#chart-bar-interactions").after("<canvas id=\"chart-bar-interactions\"></canvas>");
+			$canvas.remove();
+
+			// populate canvas with chart
+			var ctx4 = document.getElementById("chart-bar-interactions").getContext("2d");
+			var horizontalBar = new Chart(ctx4, {
+				// The type of chart we want to create
+				type: "horizontalBar",
+
+		    	// The data for our dataset
+		    	data: interactionTimeData,
+
+	    		// Configuration options go here
+	    		options: {
+	    			responsive: true
+	    		}
+	    	});
+		};
+
 		function generateTimelines(res) {
 			// clear data
 			impressionData.labels = [];
@@ -250,6 +383,8 @@
 			rateData.labels = [];
 			rateData.datasets[0].data = [];
 			rateData.datasets[1].data = [];
+			interactionData.labels = [];
+			interactionData.datasets[0].data = [];
 
 			// number of data points to show
 			var numDataPoints
@@ -298,6 +433,8 @@
 				actionData.datasets[2].data.push(0);
 				actionData.datasets[3].data.push(0);
 				rateData.labels.push(timeString);
+				interactionData.labels.push(timeString);
+				interactionData.datasets[0].data.push(0);
 
 				timeStep += stepSize;
 			}
@@ -338,6 +475,30 @@
 				}
 			}
 
+			if (sessions.length > 0) {
+				var interactionsPerInterval = [];
+				for (var i = 0; i < numDataPoints; i++) {
+					interactionsPerInterval.push(0);
+				}
+
+				sessions.forEach(session => {
+					if (session.hasInteraction && session.interactionTime < maxInteractionTime) {
+						var index = Math.floor((session.interactionEnd - lowerBounds) / stepSize);
+						interactionData.datasets[0].data[index] += session.interactionTime;
+						interactionsPerInterval[index]++;
+					}
+				});
+
+				for (var i = 0; i < numDataPoints; i++) {
+					if (interactionsPerInterval[i] != 0) {
+						interactionData.datasets[0].data[i] /= interactionsPerInterval[i] * 1000;
+					}
+				}
+			}
+			else {
+				console.log("ERROR: No sessions generated in timeline");
+			}
+
 			renderTimeline(impressionData);
 		};
 
@@ -370,6 +531,7 @@
 			const creativeDataURL = "/creatives/" + creativeId;
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
+				generateInteractionTimes(res);
 				generateTimelines(res);
 				generateImpressionBreakdown(res);
 				generateVariantBreakdown(res);
