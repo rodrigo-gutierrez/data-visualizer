@@ -76,6 +76,8 @@
 		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionData));
 		const $buttonRates = $("#button-rates").click(e => renderTimeline(rateData));
 
+		const maxInteractionTime = 60000;
+
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
 			renderCreativeTable(data);
 			showCreative(data[0].creativeId);
@@ -319,7 +321,7 @@
 							interactionTimeData.datasets[0].data[5]++;
 						else if (interactionTime < 10000)
 							interactionTimeData.datasets[0].data[6]++;
-						else 
+						else if (interactionTime < maxInteractionTime)
 							interactionTimeData.datasets[0].data[7]++;
 					}
 				});
