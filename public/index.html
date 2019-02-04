@@ -19,7 +19,7 @@
 			background: #eee;
 		}
 		.button {
-
+			
 		}
 		.table-data {
 			
@@ -209,17 +209,15 @@
 			}]
 		};
 
-		function generateImpressionBreakdown(res) {
-			impressionBreakdownData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
-
+		function renderBreakdowns() {
 			// clean canvas to avoid rendering bug
-			const $canvas = $("#chart-doughnut-impressions");
+			var $canvas = $("#chart-doughnut-impressions");
 			$("#chart-doughnut-impressions").after("<canvas id=\"chart-doughnut-impressions\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
 			var ctx2 = document.getElementById("chart-doughnut-impressions").getContext("2d");
-			var doughnut = new Chart(ctx2, {
+			var doughnutImpressions = new Chart(ctx2, {
 				// The type of chart we want to create
 				type: "doughnut",
 
@@ -229,37 +227,15 @@
 	    		// Configuration options go here
 	    		options: {}
 	    	});
-		};
-
-		function generateVariantBreakdown(res) {
-			// clear data
-			variantBreakdownData.labels = [];
-			variantBreakdownData.datasets[0].data = [];
-			variantBreakdownData.datasets[0].backgroundColor = [];
-
-			// iterate through events, check for variant, if new variant found push, if old variant found increment
-			res.events.forEach(item => {
-				if (item.eventType === "variant") {
-					var variant = variantBreakdownData.labels.find(v => v === item.eventData.id);
-					if (variant != null) {
-						variantBreakdownData.datasets[0].data[variantBreakdownData.labels.indexOf(variant)]++;
-					}
-					else {
-						variantBreakdownData.labels.push(item.eventData.id);
-						variantBreakdownData.datasets[0].data.push(1);
-						variantBreakdownData.datasets[0].backgroundColor.push(item.eventData.id);
-					}
-				}
-			});
 
 			// clean canvas to avoid rendering bug
-			const $canvas = $("#chart-doughnut-variants");
+			$canvas = $("#chart-doughnut-variants");
 			$("#chart-doughnut-variants").after("<canvas id=\"chart-doughnut-variants\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
 			var ctx3 = document.getElementById("chart-doughnut-variants").getContext("2d");
-			var doughnut = new Chart(ctx3, {
+			var doughnutVariants = new Chart(ctx3, {
 				// The type of chart we want to create
 				type: "doughnut",
 
@@ -268,6 +244,26 @@
 
 	    		// Configuration options go here
 	    		options: {}
+	    	});
+
+	    	// clean canvas to avoid rendering bug
+			$canvas = $("#chart-bar-interactions");
+			$("#chart-bar-interactions").after("<canvas id=\"chart-bar-interactions\"></canvas>");
+			$canvas.remove();
+
+			// populate canvas with chart
+			var ctx4 = document.getElementById("chart-bar-interactions").getContext("2d");
+			var horizontalBarInteractions = new Chart(ctx4, {
+				// The type of chart we want to create
+				type: "horizontalBar",
+
+		    	// The data for our dataset
+		    	data: interactionTimeData,
+
+	    		// Configuration options go here
+	    		options: {
+	    			responsive: true
+	    		}
 	    	});
 		};
 
@@ -280,13 +276,8 @@
 			this.events = [];
 		};
 
-		function generateInteractionTimes(data) {
+		function arrangeSessions(data) {
 			//clear data
-			interactionTimeData.datasets[0].data = [];
-
-			for (var i = 0; i < interactionTimeData.labels.length; i++)
-				interactionTimeData.datasets[0].data.push(0);
-
 			sessions = [];
 
 			data.events.forEach(item => {
@@ -320,56 +311,13 @@
 						});
 					}
 				});
-
-				sessions.forEach(session => {
-					if (session.hasInteraction) {
-						session.interactionTime = session.interactionEnd - session.interactionStart;
-
-						if (session.interactionTime < 1000)
-							interactionTimeData.datasets[0].data[0]++;
-						else if (session.interactionTime < 2000)
-							interactionTimeData.datasets[0].data[1]++;
-						else if (session.interactionTime < 3000)
-							interactionTimeData.datasets[0].data[2]++;
-						else if (session.interactionTime < 4000)
-							interactionTimeData.datasets[0].data[3]++;
-						else if (session.interactionTime < 5000)
-							interactionTimeData.datasets[0].data[4]++;
-						else if (session.interactionTime < 7000)
-							interactionTimeData.datasets[0].data[5]++;
-						else if (session.interactionTime < 10000)
-							interactionTimeData.datasets[0].data[6]++;
-						else if (session.interactionTime < maxInteractionTime)
-							interactionTimeData.datasets[0].data[7]++;
-					}
-				});
 			}
 			else {
 				console.log("ERROR: No sessions generated");
 			}
-
-			// clean canvas to avoid rendering bug
-			const $canvas = $("#chart-bar-interactions");
-			$("#chart-bar-interactions").after("<canvas id=\"chart-bar-interactions\"></canvas>");
-			$canvas.remove();
-
-			// populate canvas with chart
-			var ctx4 = document.getElementById("chart-bar-interactions").getContext("2d");
-			var horizontalBar = new Chart(ctx4, {
-				// The type of chart we want to create
-				type: "horizontalBar",
-
-		    	// The data for our dataset
-		    	data: interactionTimeData,
-
-	    		// Configuration options go here
-	    		options: {
-	    			responsive: true
-	    		}
-	    	});
 		};
 
-		function generateTimelines(res) {
+		function generateChartsData(res) {
 			// clear data
 			impressionData.labels = [];
 			impressionData.datasets[0].data = [];
@@ -385,6 +333,15 @@
 			rateData.datasets[1].data = [];
 			interactionData.labels = [];
 			interactionData.datasets[0].data = [];
+			variantBreakdownData.labels = [];
+			variantBreakdownData.datasets[0].data = [];
+			variantBreakdownData.datasets[0].backgroundColor = [];
+			interactionTimeData.datasets[0].data = [];
+
+			for (var i = 0; i < interactionTimeData.labels.length; i++)
+				interactionTimeData.datasets[0].data.push(0);
+
+			impressionBreakdownData.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
 
 			// number of data points to show
 			var numDataPoints
@@ -458,6 +415,15 @@
 				}
 				if (item.eventType === "variant") {
 					actionData.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
+					var variant = variantBreakdownData.labels.find(v => v === item.eventData.id);
+					if (variant != null) {
+						variantBreakdownData.datasets[0].data[variantBreakdownData.labels.indexOf(variant)]++;
+					}
+					else {
+						variantBreakdownData.labels.push(item.eventData.id);
+						variantBreakdownData.datasets[0].data.push(1);
+						variantBreakdownData.datasets[0].backgroundColor.push(item.eventData.id);
+					}
 				}
 				if (item.eventType === "reset") {
 					actionData.datasets[3].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
@@ -482,10 +448,31 @@
 				}
 
 				sessions.forEach(session => {
-					if (session.hasInteraction && session.interactionTime < maxInteractionTime) {
-						var index = Math.floor((session.interactionEnd - lowerBounds) / stepSize);
-						interactionData.datasets[0].data[index] += session.interactionTime;
-						interactionsPerInterval[index]++;
+					if (session.hasInteraction) {
+						session.interactionTime = session.interactionEnd - session.interactionStart;
+
+						if (session.interactionTime < maxInteractionTime) {
+							var index = Math.floor((session.interactionEnd - lowerBounds) / stepSize);
+							interactionData.datasets[0].data[index] += session.interactionTime;
+							interactionsPerInterval[index]++;
+
+							if (session.interactionTime < 1000)
+								interactionTimeData.datasets[0].data[0]++;
+							else if (session.interactionTime < 2000)
+								interactionTimeData.datasets[0].data[1]++;
+							else if (session.interactionTime < 3000)
+								interactionTimeData.datasets[0].data[2]++;
+							else if (session.interactionTime < 4000)
+								interactionTimeData.datasets[0].data[3]++;
+							else if (session.interactionTime < 5000)
+								interactionTimeData.datasets[0].data[4]++;
+							else if (session.interactionTime < 7000)
+								interactionTimeData.datasets[0].data[5]++;
+							else if (session.interactionTime < 10000)
+								interactionTimeData.datasets[0].data[6]++;
+							else
+								interactionTimeData.datasets[0].data[7]++;
+						}
 					}
 				});
 
@@ -531,10 +518,9 @@
 			const creativeDataURL = "/creatives/" + creativeId;
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
-				generateInteractionTimes(res);
-				generateTimelines(res);
-				generateImpressionBreakdown(res);
-				generateVariantBreakdown(res);
+				arrangeSessions(res);
+				generateChartsData(res);
+				renderBreakdowns();
 
 				// regenerate charts
 			}).catch(error => {
