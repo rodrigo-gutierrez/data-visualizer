@@ -16,10 +16,14 @@ var tableData = [];
 app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
 app.get("/", (req, res) => {
-	// change to async
-	const input = fs.readFileSync(path.join(__dirname, "public", "index.html"), "utf-8");
-
-	res.send(input);
+	fs.readFile(path.join(__dirname, "public", "index.html"), "utf-8", (error, data) => {
+		if (!error) {
+			res.send(data);
+		}
+		else {
+			res.status(500).send("Internal Server Error: readFile failure: " + error);
+		}
+	});
 });
 
 app.get("/creative", (req, res) => {
