@@ -199,7 +199,7 @@
 		};
 
 		var engagementBars = {
-			labels: ["< 1", "1~2", "2~3", "3~4", "4~5", "5~7", "7~10", "> 10"],
+			labels: [],
 			datasets: [{
 				label: "Engagement Times (seconds)",
 				backgroundColor: "#3E95CD",
@@ -292,21 +292,24 @@
 			});
 
 			fetch(creativeDataURL + "/impression-breakdown").then(res => res.json()).then(data => {
-				impressionBreakdown = data;
+				impressionBreakdown.datasets[0].data = data.datasets[0].data;
 				renderStandaloneChart("chart-doughnut-impressions", "doughnut", impressionBreakdown);
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/variant-breakdown").then(res => res.json()).then(data => {
-				variantBreakdown = data;
+				variantBreakdown.labels = data.labels;
+				variantBreakdown.datasets[0].data = data.datasets[0].data;
+				variantBreakdown.datasets[0].backgroundColor = data.datasets[0].backgroundColor;
 				renderStandaloneChart("chart-doughnut-variants", "doughnut", variantBreakdown);
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/engagement-bars").then(res => res.json()).then(data => {
-				engagementBars = data;
+				engagementBars.labels = data.labels;
+				engagementBars.datasets[0].data = data.datasets[0].data;
 				renderStandaloneChart("chart-bar-engagement", "horizontalBar", engagementBars, { responsive: true });
 			}).catch(error => {
 				console.log(error);

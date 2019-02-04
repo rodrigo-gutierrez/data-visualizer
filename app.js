@@ -206,10 +206,7 @@ function Creative(creativeId, name) {
 	};
 
 	this.impressionBreakdown = {
-		labels: ["Impressions", "Interactions", "Clicks"],
 		datasets: [{
-			label: "Event Count",
-			backgroundColor: ["#3E95CD", "#95CD3E","#CD3E95"],
 			data: []
 		}]
 	};
@@ -217,7 +214,6 @@ function Creative(creativeId, name) {
 	this.variantBreakdown = {
 		labels: [],
 		datasets: [{
-			label: "Variant Breakdown",
 			backgroundColor: [],
 			data: []
 		}]
@@ -226,8 +222,6 @@ function Creative(creativeId, name) {
 	this.engagementBars = {
 		labels: ["< 1", "1~2", "2~3", "3~4", "4~5", "5~7", "7~10", "> 10"],
 		datasets: [{
-			label: "Engagement Times (seconds)",
-			backgroundColor: "#3E95CD",
 			data: []
 		}]
 	};
