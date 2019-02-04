@@ -78,6 +78,8 @@
 
 		const maxInteractionTime = 60000;
 
+		var sessions = [];
+
 		fetch(creativeTableURL).then(res => res.json()).then(data => {
 			renderCreativeTable(data);
 			showCreative(data[0].creativeId);
@@ -259,6 +261,7 @@
 			this.hasInteraction = false;
 			this.interactionStart = 0;
 			this.interactionEnd = 0;
+			this.interactionTime = 0;
 			this.events = [];
 		};
 
@@ -269,7 +272,7 @@
 			for (var i = 0; i < interactionTimeData.labels.length; i++)
 				interactionTimeData.datasets[0].data.push(0);
 
-			const sessions = [];
+			sessions = [];
 
 			data.events.forEach(item => {
 				var session = sessions.find(s => s.sessionId == item.sessionId);
@@ -305,23 +308,23 @@
 
 				sessions.forEach(session => {
 					if (session.hasInteraction) {
-						var interactionTime = session.interactionEnd - session.interactionStart;
+						session.interactionTime = session.interactionEnd - session.interactionStart;
 
-						if (interactionTime < 1000)
+						if (session.interactionTime < 1000)
 							interactionTimeData.datasets[0].data[0]++;
-						else if (interactionTime < 2000)
+						else if (session.interactionTime < 2000)
 							interactionTimeData.datasets[0].data[1]++;
-						else if (interactionTime < 3000)
+						else if (session.interactionTime < 3000)
 							interactionTimeData.datasets[0].data[2]++;
-						else if (interactionTime < 4000)
+						else if (session.interactionTime < 4000)
 							interactionTimeData.datasets[0].data[3]++;
-						else if (interactionTime < 5000)
+						else if (session.interactionTime < 5000)
 							interactionTimeData.datasets[0].data[4]++;
-						else if (interactionTime < 7000)
+						else if (session.interactionTime < 7000)
 							interactionTimeData.datasets[0].data[5]++;
-						else if (interactionTime < 10000)
+						else if (session.interactionTime < 10000)
 							interactionTimeData.datasets[0].data[6]++;
-						else if (interactionTime < maxInteractionTime)
+						else if (session.interactionTime < maxInteractionTime)
 							interactionTimeData.datasets[0].data[7]++;
 					}
 				});
