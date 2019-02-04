@@ -147,7 +147,6 @@ function arrangeEvents(eventsData) {
 	// NOT correct place for this
 	if (creatives.length > 0) {
 		updateTable();
-		//console.log("Processing done");
 	}
 };
 
@@ -163,4 +162,5 @@ function updateTable() {
 			clickCount: c.clickCount
 		};
 	});
+	console.log("Updating Cache Table Data done");
 };
