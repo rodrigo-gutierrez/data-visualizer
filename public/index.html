@@ -71,14 +71,12 @@
 		</tr>
 	</table>
 	<script>
-		const creativeTableURL = "/creatives";
+		const creativeTableURL = "/creative";
 
 		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(impressionTimeline));
 		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionTimeline));
 		const $buttonRates = $("#button-rates").click(e => renderTimeline(rateTimeline));
 		const $buttonInteractions = $("#button-engagement").click(e => renderTimeline(engagementTimeline));
-
-		const maxInteractionTime = 60000;
 
 		var sessions = [];
 
@@ -201,7 +199,7 @@
 		};
 
 		var engagementBars = {
-			labels: ["< 1", "1~2", "2~3", "3~4", "4~5", "5~7", "7~10", "> 10"],
+			labels: [],
 			datasets: [{
 				label: "Engagement Times (seconds)",
 				backgroundColor: "#3E95CD",
@@ -209,286 +207,24 @@
 			}]
 		};
 
-		function renderBreakdowns() {
-			var $canvas;
-
+		function renderStandaloneChart(name, type, data, options = {}) {
 			// clean canvas to avoid rendering bug
-			$canvas = $("#chart-doughnut-impressions");
-			$("#chart-doughnut-impressions").after("<canvas id=\"chart-doughnut-impressions\"></canvas>");
+			var $canvas = $("#" + name);
+			$("#" + name).after("<canvas id=\"" + name + "\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
-			var ctx2 = document.getElementById("chart-doughnut-impressions").getContext("2d");
-			var doughnutImpressions = new Chart(ctx2, {
+			var context = document.getElementById(name).getContext("2d");
+			var chart = new Chart(context, {
 				// The type of chart we want to create
-				type: "doughnut",
+				type: type,
 
 		    	// The data for our dataset
-		    	data: impressionBreakdown,
+		    	data: data,
 
 	    		// Configuration options go here
-	    		options: {}
+	    		options: options
 	    	});
-
-			// clean canvas to avoid rendering bug
-			$canvas = $("#chart-doughnut-variants");
-			$("#chart-doughnut-variants").after("<canvas id=\"chart-doughnut-variants\"></canvas>");
-			$canvas.remove();
-
-			// populate canvas with chart
-			var ctx3 = document.getElementById("chart-doughnut-variants").getContext("2d");
-			var doughnutVariants = new Chart(ctx3, {
-				// The type of chart we want to create
-				type: "doughnut",
-
-		    	// The data for our dataset
-		    	data: variantBreakdown,
-
-	    		// Configuration options go here
-	    		options: {}
-	    	});
-
-	    	// clean canvas to avoid rendering bug
-			$canvas = $("#chart-bar-engagement");
-			$("#chart-bar-engagement").after("<canvas id=\"chart-bar-engagement\"></canvas>");
-			$canvas.remove();
-
-			// populate canvas with chart
-			var ctx4 = document.getElementById("chart-bar-engagement").getContext("2d");
-			var horizontalBarInteractions = new Chart(ctx4, {
-				// The type of chart we want to create
-				type: "horizontalBar",
-
-		    	// The data for our dataset
-		    	data: engagementBars,
-
-	    		// Configuration options go here
-	    		options: {
-	    			responsive: true
-	    		}
-	    	});
-		};
-
-		function Session(sessionId) {
-			this.sessionId = sessionId;
-			this.hasInteraction = false;
-			this.interactionStart = 0;
-			this.interactionEnd = 0;
-			this.interactionTime = 0;
-			this.events = [];
-		};
-
-		function arrangeSessions(data) {
-			//clear data
-			sessions = [];
-
-			data.events.forEach(item => {
-				var session = sessions.find(s => s.sessionId == item.sessionId);
-				if (session == null) {
-					sessions.push(new Session(item.sessionId));
-					sessions[sessions.length - 1].events.push(item);
-				}
-				else {
-					session.events.push(item);
-				}
-			});
-
-			if (sessions.length > 0) {
-				sessions.forEach(session => {
-					// init stuff
-
-					session.events.forEach(event => {
-						if (event.eventType === "first-interaction" || event.eventType === "first-click") {
-							session.hasInteraction = true;
-							session.interactionStart = event.dateTime;
-							session.interactionEnd = event.dateTime;
-						}
-					});
-
-					if (session.hasInteraction) {
-						session.events.forEach(event => {
-							if (event.eventType === "rotation" || event.eventType === "zoom" || event.eventType === "variant" || event.eventType === "reset") {
-								if (event.dateTime > session.interactionEnd) session.interactionEnd = event.dateTime;
-							}
-						});
-					}
-				});
-			}
-			else {
-				console.log("ERROR: No sessions generated");
-			}
-		};
-
-		function generateChartsData(res) {
-			// clear data
-			impressionTimeline.labels = [];
-			impressionTimeline.datasets[0].data = [];
-			impressionTimeline.datasets[1].data = [];
-			impressionTimeline.datasets[2].data = [];
-			actionTimeline.labels = [];
-			actionTimeline.datasets[0].data = [];
-			actionTimeline.datasets[1].data = [];
-			actionTimeline.datasets[2].data = [];
-			actionTimeline.datasets[3].data = [];
-			rateTimeline.labels = [];
-			rateTimeline.datasets[0].data = [];
-			rateTimeline.datasets[1].data = [];
-			engagementTimeline.labels = [];
-			engagementTimeline.datasets[0].data = [];
-			variantBreakdown.labels = [];
-			variantBreakdown.datasets[0].data = [];
-			variantBreakdown.datasets[0].backgroundColor = [];
-			engagementBars.datasets[0].data = [];
-
-			for (var i = 0; i < engagementBars.labels.length; i++)
-				engagementBars.datasets[0].data.push(0);
-
-			impressionBreakdown.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
-
-			// number of data points to show
-			var numDataPoints
-			if (res.events.length > 240) numDataPoints = 240;
-			else numDataPoints = res.events.length;
-
-			// find oldest event
-			const dateTimes = res.events.map(d => new Date(d.dateTime).getTime());
-			var lowerBounds = dateTimes[0];
-			dateTimes.forEach(dateTime => {
-				if (dateTime < lowerBounds) lowerBounds = dateTime;
-			});
-
-			// set upper bounds to now
-			const upperBounds = new Date(Date.now()).getTime();
-
-			// set total time period to work with
-			const totalBounds = upperBounds - lowerBounds;
-
-			// set time step size
-			const stepSize = Math.floor(totalBounds / numDataPoints);
-			
-			// begin at lower bounds
-			var timeStep = lowerBounds;
-
-			// generate time labels
-			for (var i = 0; i < numDataPoints; i++) {
-				var minutes = new Date(timeStep).getMinutes();
-				var hour = new Date(timeStep).getHours();
-				var day = new Date(timeStep).getDate();
-				var month = new Date(timeStep).getMonth() + 1;
-
-				var timeString = 
-				(month < 10 ? "0" + month : month) + "-" + 
-				(day < 10 ? "0" + day : day) + "-" + 
-				(hour < 10 ? "0" + hour : hour) + ":" + 
-				(minutes < 10 ? "0" + minutes : minutes);
-
-				impressionTimeline.labels.push(timeString);
-				impressionTimeline.datasets[0].data.push(0);
-				impressionTimeline.datasets[1].data.push(0);
-				impressionTimeline.datasets[2].data.push(0);
-				actionTimeline.labels.push(timeString);
-				actionTimeline.datasets[0].data.push(0);
-				actionTimeline.datasets[1].data.push(0);
-				actionTimeline.datasets[2].data.push(0);
-				actionTimeline.datasets[3].data.push(0);
-				rateTimeline.labels.push(timeString);
-				engagementTimeline.labels.push(timeString);
-				engagementTimeline.datasets[0].data.push(0);
-
-				timeStep += stepSize;
-			}
-
-			// sort all events into the time step buckets
-			res.events.forEach(item => {
-				if (item.eventType === "impression") {
-					impressionTimeline.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "first-interaction" || item.eventType === "first-click") {
-					impressionTimeline.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "click-through") {
-					impressionTimeline.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "rotation") {
-					actionTimeline.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "zoom") {
-					actionTimeline.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "variant") {
-					actionTimeline.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-					var variant = variantBreakdown.labels.find(v => v === item.eventData.id);
-					if (variant != null) {
-						variantBreakdown.datasets[0].data[variantBreakdown.labels.indexOf(variant)]++;
-					}
-					else {
-						variantBreakdown.labels.push(item.eventData.id);
-						variantBreakdown.datasets[0].data.push(1);
-						variantBreakdown.datasets[0].backgroundColor.push(item.eventData.id);
-					}
-				}
-				if (item.eventType === "reset") {
-					actionTimeline.datasets[3].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-			});
-
-			for (var i = 0; i < numDataPoints; i++) {
-				if (impressionTimeline.datasets[0].data[i] == 0) {
-					rateTimeline.datasets[0].data.push(0);
-					rateTimeline.datasets[1].data.push(0);
-				}
-				else {
-					rateTimeline.datasets[0].data.push(impressionTimeline.datasets[1].data[i] / impressionTimeline.datasets[0].data[i]);
-					rateTimeline.datasets[1].data.push(impressionTimeline.datasets[2].data[i] / impressionTimeline.datasets[0].data[i]);
-				}
-			}
-
-			if (sessions.length > 0) {
-				var interactionsPerInterval = [];
-				for (var i = 0; i < numDataPoints; i++) {
-					interactionsPerInterval.push(0);
-				}
-
-				sessions.forEach(session => {
-					if (session.hasInteraction) {
-						session.interactionTime = session.interactionEnd - session.interactionStart;
-
-						if (session.interactionTime < maxInteractionTime) {
-							var index = Math.floor((session.interactionEnd - lowerBounds) / stepSize);
-							engagementTimeline.datasets[0].data[index] += session.interactionTime;
-							interactionsPerInterval[index]++;
-
-							if (session.interactionTime < 1000)
-								engagementBars.datasets[0].data[0]++;
-							else if (session.interactionTime < 2000)
-								engagementBars.datasets[0].data[1]++;
-							else if (session.interactionTime < 3000)
-								engagementBars.datasets[0].data[2]++;
-							else if (session.interactionTime < 4000)
-								engagementBars.datasets[0].data[3]++;
-							else if (session.interactionTime < 5000)
-								engagementBars.datasets[0].data[4]++;
-							else if (session.interactionTime < 7000)
-								engagementBars.datasets[0].data[5]++;
-							else if (session.interactionTime < 10000)
-								engagementBars.datasets[0].data[6]++;
-							else
-								engagementBars.datasets[0].data[7]++;
-						}
-					}
-				});
-
-				for (var i = 0; i < numDataPoints; i++) {
-					if (interactionsPerInterval[i] != 0) {
-						engagementTimeline.datasets[0].data[i] /= interactionsPerInterval[i] * 1000;
-					}
-				}
-			}
-			else {
-				console.log("ERROR: No sessions generated in timeline");
-			}
-
-			renderTimeline(impressionTimeline);
 		};
 
 		function renderTimeline(data) {
@@ -517,14 +253,64 @@
 				$(e.target).closest("tr").addClass("active");
 			}
 
-			const creativeDataURL = "/creatives/" + creativeId;
+			const creativeDataURL = "/creative/" + creativeId;
 
-			fetch(creativeDataURL).then(data => data.json()).then(res => {
-				arrangeSessions(res);
-				generateChartsData(res);
-				renderBreakdowns();
+			// fetch first timeline
+			fetch(creativeDataURL + "/impression-timeline").then(res => res.json()).then(data => {
+				impressionTimeline.labels = data.labels;
+				impressionTimeline.datasets[0].data = data.datasets[0].data;
+				impressionTimeline.datasets[1].data = data.datasets[1].data;
+				impressionTimeline.datasets[2].data = data.datasets[2].data;
+				renderTimeline(impressionTimeline);
+			}).catch(error => {
+				console.log(error);
+			});
 
-				// regenerate charts
+			fetch(creativeDataURL + "/action-timeline").then(res => res.json()).then(data => {
+				actionTimeline.labels = data.labels;
+				actionTimeline.datasets[0].data = data.datasets[0].data;
+				actionTimeline.datasets[1].data = data.datasets[1].data;
+				actionTimeline.datasets[2].data = data.datasets[2].data;
+				actionTimeline.datasets[3].data = data.datasets[3].data;
+			}).catch(error => {
+				console.log(error);
+			});
+
+			fetch(creativeDataURL + "/rate-timeline").then(res => res.json()).then(data => {
+				rateTimeline.labels = data.labels;
+				rateTimeline.datasets[0].data = data.datasets[0].data;
+				rateTimeline.datasets[1].data = data.datasets[1].data;
+			}).catch(error => {
+				console.log(error);
+			});
+
+			fetch(creativeDataURL + "/engagement-timeline").then(res => res.json()).then(data => {
+				engagementTimeline.labels = data.labels;
+				engagementTimeline.datasets[0].data = data.datasets[0].data;
+			}).catch(error => {
+				console.log(error);
+			});
+
+			fetch(creativeDataURL + "/impression-breakdown").then(res => res.json()).then(data => {
+				impressionBreakdown.datasets[0].data = data.datasets[0].data;
+				renderStandaloneChart("chart-doughnut-impressions", "doughnut", impressionBreakdown);
+			}).catch(error => {
+				console.log(error);
+			});
+
+			fetch(creativeDataURL + "/variant-breakdown").then(res => res.json()).then(data => {
+				variantBreakdown.labels = data.labels;
+				variantBreakdown.datasets[0].data = data.datasets[0].data;
+				variantBreakdown.datasets[0].backgroundColor = data.datasets[0].backgroundColor;
+				renderStandaloneChart("chart-doughnut-variants", "doughnut", variantBreakdown);
+			}).catch(error => {
+				console.log(error);
+			});
+
+			fetch(creativeDataURL + "/engagement-bars").then(res => res.json()).then(data => {
+				engagementBars.labels = data.labels;
+				engagementBars.datasets[0].data = data.datasets[0].data;
+				renderStandaloneChart("chart-bar-engagement", "horizontalBar", engagementBars, { responsive: true });
 			}).catch(error => {
 				console.log(error);
 			});
