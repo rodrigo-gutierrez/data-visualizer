@@ -210,6 +210,8 @@
 		};
 
 		function renderBreakdowns() {
+			var $canvas;
+
 			// clean canvas to avoid rendering bug
 			var $canvas = $("#chart-doughnut-impressions");
 			$("#chart-doughnut-impressions").after("<canvas id=\"chart-doughnut-impressions\"></canvas>");
