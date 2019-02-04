@@ -207,65 +207,23 @@
 			}]
 		};
 
-		function renderImpressionBreakdown() {
+		function renderStandaloneChart(name, type, data, options = {}) {
 			// clean canvas to avoid rendering bug
-			var $canvas = $("#chart-doughnut-impressions");
-			$("#chart-doughnut-impressions").after("<canvas id=\"chart-doughnut-impressions\"></canvas>");
+			var $canvas = $("#" + name);
+			$("#" + name).after("<canvas id=\"" + name + "\"></canvas>");
 			$canvas.remove();
 
 			// populate canvas with chart
-			var context = document.getElementById("chart-doughnut-impressions").getContext("2d");
-			var doughnutImpressions = new Chart(context, {
+			var context = document.getElementById(name).getContext("2d");
+			var chart = new Chart(context, {
 				// The type of chart we want to create
-				type: "doughnut",
+				type: type,
 
 		    	// The data for our dataset
-		    	data: impressionBreakdown,
+		    	data: data,
 
 	    		// Configuration options go here
-	    		options: {}
-	    	});
-		};
-
-		function renderVariantBreakdown() {
-			// clean canvas to avoid rendering bug
-			var $canvas = $("#chart-doughnut-variants");
-			$("#chart-doughnut-variants").after("<canvas id=\"chart-doughnut-variants\"></canvas>");
-			$canvas.remove();
-
-			// populate canvas with chart
-			var context = document.getElementById("chart-doughnut-variants").getContext("2d");
-			var doughnutVariants = new Chart(context, {
-				// The type of chart we want to create
-				type: "doughnut",
-
-		    	// The data for our dataset
-		    	data: variantBreakdown,
-
-	    		// Configuration options go here
-	    		options: {}
-	    	});
-		};
-
-		function renderEngagementBars() {
-	    	// clean canvas to avoid rendering bug
-			var $canvas = $("#chart-bar-engagement");
-			$("#chart-bar-engagement").after("<canvas id=\"chart-bar-engagement\"></canvas>");
-			$canvas.remove();
-
-			// populate canvas with chart
-			var context = document.getElementById("chart-bar-engagement").getContext("2d");
-			var horizontalBarInteractions = new Chart(context, {
-				// The type of chart we want to create
-				type: "horizontalBar",
-
-		    	// The data for our dataset
-		    	data: engagementBars,
-
-	    		// Configuration options go here
-	    		options: {
-	    			responsive: true
-	    		}
+	    		options: options
 	    	});
 		};
 
@@ -335,21 +293,21 @@
 
 			fetch(creativeDataURL + "/impression-breakdown").then(res => res.json()).then(data => {
 				impressionBreakdown = data;
-				renderImpressionBreakdown();
+				renderStandaloneChart("chart-doughnut-impressions", "doughnut", impressionBreakdown);
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/variant-breakdown").then(res => res.json()).then(data => {
 				variantBreakdown = data;
-				renderVariantBreakdown();
+				renderStandaloneChart("chart-doughnut-variants", "doughnut", variantBreakdown);
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/engagement-bars").then(res => res.json()).then(data => {
 				engagementBars = data;
-				renderEngagementBars();
+				renderStandaloneChart("chart-bar-engagement", "horizontalBar", engagementBars, { responsive: true });
 			}).catch(error => {
 				console.log(error);
 			});
