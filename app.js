@@ -265,8 +265,11 @@ async function getEvents() {
 				generateChartsData();
 			}
 		}
-		else {
+		else if (error && response) {
 			console.log(response.statusCode + ": " + error);
+		}
+		else {
+			console.log("Failed to get Status Code: " + error);
 		}
 	});
 };
@@ -281,8 +284,11 @@ async function getCreatives() {
 				arrangeCreatives(creativesData);
 			}
 		}
-		else {
+		else if (error && response) {
 			console.log(response.statusCode + ": " + error);
+		}
+		else {
+			console.log("Failed to get Status Code: " + error);
 		}
 	});
 };
