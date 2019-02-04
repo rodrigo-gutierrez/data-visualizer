@@ -39,6 +39,7 @@
 		<button id="button-impressions" class="button">Impressions</button>
 		<button id="button-actions" class="button">Actions</button>
 		<button id="button-rates" class="button">Rates</button>
+		<button id="button-interactions" class="button">Interactions</button>
 	</div>
 	<h2>Creatives</h2>
 	<table>
@@ -75,6 +76,7 @@
 		const $buttonImpressions = $("#button-impressions").click(e => renderTimeline(impressionData));
 		const $buttonActions = $("#button-actions").click(e => renderTimeline(actionData));
 		const $buttonRates = $("#button-rates").click(e => renderTimeline(rateData));
+		const $buttonInteractions = $("#button-interactions").click(e => renderTimeline(interactionData));
 
 		const maxInteractionTime = 60000;
 
@@ -107,6 +109,19 @@
 					label: "Clicks per Interval",
 					backgroundColor: "#CD3E95",
 					borderColor: "#CD3E95",
+					fill: false,
+					data: []
+				}
+			]
+		};
+
+		var interactionData = {
+			labels: [],
+			datasets: [
+				{
+					label: "Interaction Time per Interval (seconds)",
+					backgroundColor: "#3E95CD",
+					borderColor: "#3E95CD",
 					fill: false,
 					data: []
 				}
@@ -368,6 +383,8 @@
 			rateData.labels = [];
 			rateData.datasets[0].data = [];
 			rateData.datasets[1].data = [];
+			interactionData.labels = [];
+			interactionData.datasets[0].data = [];
 
 			// number of data points to show
 			var numDataPoints
@@ -416,6 +433,8 @@
 				actionData.datasets[2].data.push(0);
 				actionData.datasets[3].data.push(0);
 				rateData.labels.push(timeString);
+				interactionData.labels.push(timeString);
+				interactionData.datasets[0].data.push(0);
 
 				timeStep += stepSize;
 			}
@@ -454,6 +473,30 @@
 					rateData.datasets[0].data.push(impressionData.datasets[1].data[i] / impressionData.datasets[0].data[i]);
 					rateData.datasets[1].data.push(impressionData.datasets[2].data[i] / impressionData.datasets[0].data[i]);
 				}
+			}
+
+			if (sessions.length > 0) {
+				var interactionsPerInterval = [];
+				for (var i = 0; i < numDataPoints; i++) {
+					interactionsPerInterval.push(0);
+				}
+
+				sessions.forEach(session => {
+					if (session.hasInteraction && session.interactionTime < maxInteractionTime) {
+						var index = Math.floor((session.interactionEnd - lowerBounds) / stepSize);
+						interactionData.datasets[0].data[index] += session.interactionTime;
+						interactionsPerInterval[index]++;
+					}
+				});
+
+				for (var i = 0; i < numDataPoints; i++) {
+					if (interactionsPerInterval[i] != 0) {
+						interactionData.datasets[0].data[i] /= interactionsPerInterval[i] * 1000;
+					}
+				}
+			}
+			else {
+				console.log("ERROR: No sessions generated in timeline");
 			}
 
 			renderTimeline(impressionData);
