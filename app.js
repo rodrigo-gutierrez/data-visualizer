@@ -155,24 +155,12 @@ function Creative(creativeId, name) {
 		labels: [],
 		datasets: [
 			{
-				label: "Impressions per Interval",
-				backgroundColor: "#3E95CD",
-				borderColor: "#3E95CD",
-				fill: false,
 				data: []
 			},
 			{
-				label: "Interactions per Interval",
-				backgroundColor: "#95CD3E",
-				borderColor: "#95CD3E",
-				fill: false,
 				data: []
 			},
 			{
-				label: "Clicks per Interval",
-				backgroundColor: "#CD3E95",
-				borderColor: "#CD3E95",
-				fill: false,
 				data: []
 			}
 		]
@@ -182,10 +170,6 @@ function Creative(creativeId, name) {
 		labels: [],
 		datasets: [
 			{
-				label: "Average Engagement Time per Interval (seconds)",
-				backgroundColor: "#3E95CD",
-				borderColor: "#3E95CD",
-				fill: false,
 				data: []
 			}
 		]
@@ -195,31 +179,15 @@ function Creative(creativeId, name) {
 		labels: [],
 		datasets: [
 			{
-				label: "Rotations per Interval",
-				backgroundColor: "#3E95CD",
-				borderColor: "#3E95CD",
-				fill: false,
 				data: []
 			},
 			{
-				label: "Zooms per Interval",
-				backgroundColor: "#95CD3E",
-				borderColor: "#95CD3E",
-				fill: false,
 				data: []
 			},
 			{
-				label: "Variant Changes per Interval",
-				backgroundColor: "#CD3E95",
-				borderColor: "#CD3E95",
-				fill: false,
 				data: []
 			},
 			{
-				label: "Resets per Interval",
-				backgroundColor: "#000000",
-				borderColor: "#000000",
-				fill: false,
 				data: []
 			}
 		]
@@ -229,17 +197,9 @@ function Creative(creativeId, name) {
 		labels: [],
 		datasets: [
 			{
-				label: "Interactions / Impressions per Interval",
-				backgroundColor: "#3E95CD",
-				borderColor: "#3E95CD",
-				fill: false,
 				data: []
 			},
 			{
-				label: "Clicks / Impressions per Interval",
-				backgroundColor: "#95CD3E",
-				borderColor: "#95CD3E",
-				fill: false,
 				data: []
 			}
 		]

@@ -299,26 +299,36 @@
 
 			// fetch first timeline
 			fetch(creativeDataURL + "/impression-timeline").then(res => res.json()).then(data => {
-				impressionTimeline = data;
+				impressionTimeline.labels = data.labels;
+				impressionTimeline.datasets[0].data = data.datasets[0].data;
+				impressionTimeline.datasets[1].data = data.datasets[1].data;
+				impressionTimeline.datasets[2].data = data.datasets[2].data;
 				renderTimeline(impressionTimeline);
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/action-timeline").then(res => res.json()).then(data => {
-				actionTimeline = data;
+				actionTimeline.labels = data.labels;
+				actionTimeline.datasets[0].data = data.datasets[0].data;
+				actionTimeline.datasets[1].data = data.datasets[1].data;
+				actionTimeline.datasets[2].data = data.datasets[2].data;
+				actionTimeline.datasets[3].data = data.datasets[3].data;
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/rate-timeline").then(res => res.json()).then(data => {
-				rateTimeline = data;
+				rateTimeline.labels = data.labels;
+				rateTimeline.datasets[0].data = data.datasets[0].data;
+				rateTimeline.datasets[1].data = data.datasets[1].data;
 			}).catch(error => {
 				console.log(error);
 			});
 
 			fetch(creativeDataURL + "/engagement-timeline").then(res => res.json()).then(data => {
-				engagementTimeline = data;
+				engagementTimeline.labels = data.labels;
+				engagementTimeline.datasets[0].data = data.datasets[0].data;
 			}).catch(error => {
 				console.log(error);
 			});
