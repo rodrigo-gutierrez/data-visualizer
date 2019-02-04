@@ -77,6 +77,15 @@ function Creative(creativeId, name) {
 	this.impressionCount = 0;
 	this.interactionCount = 0;
 	this.clickCount = 0;
+	this.sessions = [];
+};
+
+function Session(sessionId) {
+	this.sessionId = sessionId;
+	this.hasInteraction = false;
+	this.interactionStart = 0;
+	this.interactionEnd = 0;
+	this.interactionTime = 0;
 	this.events = [];
 };
 
@@ -133,9 +142,24 @@ function arrangeEvents(eventsData) {
 	eventsData.Items.forEach(item => {
 		var creative = creatives.find(c => c.creativeId == item.creativeId);
 		if (creative != null) {
-			creative.events.push(new Event(item.itemId, item.creativeId, item.sessionId, item.eventId, item.eventType, item.eventData, item.dateTime));
+			var event = new Event(item.itemId, item.creativeId, item.sessionId, item.eventId, item.eventType, item.eventData, item.dateTime);
+			var session = creative.sessions.find(s => s.sessionId == item.sessionId);
+			if (session == null) {
+				session = new Session(item.sessionId);
+				creative.sessions.push(session);
+				session.events.push(event);
+			}
+			else {
+				session.events.push(event);
+			}
+
 			if (item.eventType === "impression") creative.impressionCount++;
-			if (item.eventType === "first-interaction" || item.eventType === "first-click") creative.interactionCount++;
+			if (item.eventType === "first-interaction" || item.eventType === "first-click") {
+				creative.interactionCount++;
+				session.hasInteraction = true;
+				session.interactionStart = event.dateTime;
+				session.interactionEnd = event.dateTime;
+			}
 			if (item.eventType === "click-through") creative.clickCount++;
 		}
 		else {
@@ -144,8 +168,22 @@ function arrangeEvents(eventsData) {
 	});
 	console.log("Arranging Events Done");
 
-	// NOT correct place for this
 	if (creatives.length > 0) {
+		creatives.forEach(creative => {
+			if (creative.sessions.length > 0) {
+				creative.sessions.forEach(session => {
+					if (session.hasInteraction) {
+						session.events.forEach(event => {
+							if (event.eventType === "rotation" || event.eventType === "zoom" || event.eventType === "variant" || event.eventType === "reset") {
+								if (event.dateTime > session.interactionEnd) session.interactionEnd = event.dateTime;
+							}
+						});
+					}
+				});
+			}
+		});
+		
+		// NOT correct place for this
 		updateTable();
 	}
 };
@@ -156,7 +194,7 @@ function updateTable() {
 		return { 
 			creativeId: c.creativeId,
 			name: c.name,
-			eventCount: c.events.length,
+			eventCount: c.sessions.reduce((acc, element) => acc + element.events.length, 0),
 			impressionCount: c.impressionCount,
 			interactionCount: c.interactionCount,
 			clickCount: c.clickCount

@@ -269,57 +269,7 @@
 	    	});
 		};
 
-		function Session(sessionId) {
-			this.sessionId = sessionId;
-			this.hasInteraction = false;
-			this.interactionStart = 0;
-			this.interactionEnd = 0;
-			this.interactionTime = 0;
-			this.events = [];
-		};
-
-		function arrangeSessions(data) {
-			//clear data
-			sessions = [];
-
-			data.events.forEach(item => {
-				var session = sessions.find(s => s.sessionId == item.sessionId);
-				if (session == null) {
-					sessions.push(new Session(item.sessionId));
-					sessions[sessions.length - 1].events.push(item);
-				}
-				else {
-					session.events.push(item);
-				}
-			});
-
-			if (sessions.length > 0) {
-				sessions.forEach(session => {
-					// init stuff
-
-					session.events.forEach(event => {
-						if (event.eventType === "first-interaction" || event.eventType === "first-click") {
-							session.hasInteraction = true;
-							session.interactionStart = event.dateTime;
-							session.interactionEnd = event.dateTime;
-						}
-					});
-
-					if (session.hasInteraction) {
-						session.events.forEach(event => {
-							if (event.eventType === "rotation" || event.eventType === "zoom" || event.eventType === "variant" || event.eventType === "reset") {
-								if (event.dateTime > session.interactionEnd) session.interactionEnd = event.dateTime;
-							}
-						});
-					}
-				});
-			}
-			else {
-				console.log("ERROR: No sessions generated");
-			}
-		};
-
-		function generateChartsData(res) {
+		function generateChartsData(creative) {
 			// clear data
 			impressionTimeline.labels = [];
 			impressionTimeline.datasets[0].data = [];
@@ -343,18 +293,19 @@
 			for (var i = 0; i < engagementBars.labels.length; i++)
 				engagementBars.datasets[0].data.push(0);
 
-			impressionBreakdown.datasets[0].data = [res.impressionCount, res.interactionCount, res.clickCount];
+			impressionBreakdown.datasets[0].data = [creative.impressionCount, creative.interactionCount, creative.clickCount];
 
 			// number of data points to show
-			var numDataPoints
-			if (res.events.length > 240) numDataPoints = 240;
-			else numDataPoints = res.events.length;
+			var numDataPoints = creative.sessions.reduce((acc, element) => acc + element.events.length, 0);
+			if (numDataPoints > 240) numDataPoints = 240;
 
 			// find oldest event
-			const dateTimes = res.events.map(d => new Date(d.dateTime).getTime());
-			var lowerBounds = dateTimes[0];
-			dateTimes.forEach(dateTime => {
-				if (dateTime < lowerBounds) lowerBounds = dateTime;
+			var lowerBounds = new Date(creative.sessions[0].events[0].dateTime).getTime();
+			creative.sessions.forEach(session => {
+				var dateTimes = session.events.map(d => new Date(d.dateTime).getTime());
+				dateTimes.forEach(dateTime => {
+					if (dateTime < lowerBounds) lowerBounds = dateTime;
+				});
 			});
 
 			// set upper bounds to now
@@ -399,38 +350,41 @@
 			}
 
 			// sort all events into the time step buckets
-			res.events.forEach(item => {
-				if (item.eventType === "impression") {
-					impressionTimeline.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "first-interaction" || item.eventType === "first-click") {
-					impressionTimeline.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "click-through") {
-					impressionTimeline.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "rotation") {
-					actionTimeline.datasets[0].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "zoom") {
-					actionTimeline.datasets[1].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
-				if (item.eventType === "variant") {
-					actionTimeline.datasets[2].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-					var variant = variantBreakdown.labels.find(v => v === item.eventData.id);
-					if (variant != null) {
-						variantBreakdown.datasets[0].data[variantBreakdown.labels.indexOf(variant)]++;
+			creative.sessions.forEach(session => {
+				session.events.forEach(event => {
+					if (event.eventType === "impression") {
+						impressionTimeline.datasets[0].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
 					}
-					else {
-						variantBreakdown.labels.push(item.eventData.id);
-						variantBreakdown.datasets[0].data.push(1);
-						variantBreakdown.datasets[0].backgroundColor.push(item.eventData.id);
+					if (event.eventType === "first-interaction" || event.eventType === "first-click") {
+						impressionTimeline.datasets[1].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
 					}
-				}
-				if (item.eventType === "reset") {
-					actionTimeline.datasets[3].data[Math.floor((item.dateTime - lowerBounds) / stepSize)]++;
-				}
+					if (event.eventType === "click-through") {
+						impressionTimeline.datasets[2].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
+					}
+					if (event.eventType === "rotation") {
+						actionTimeline.datasets[0].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
+					}
+					if (event.eventType === "zoom") {
+						actionTimeline.datasets[1].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
+					}
+					if (event.eventType === "variant") {
+						actionTimeline.datasets[2].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
+						var variant = variantBreakdown.labels.find(v => v === event.eventData.id);
+						if (variant != null) {
+							variantBreakdown.datasets[0].data[variantBreakdown.labels.indexOf(variant)]++;
+						}
+						else {
+							variantBreakdown.labels.push(event.eventData.id);
+							variantBreakdown.datasets[0].data.push(1);
+							variantBreakdown.datasets[0].backgroundColor.push(event.eventData.id);
+						}
+					}
+					if (event.eventType === "reset") {
+						actionTimeline.datasets[3].data[Math.floor((event.dateTime - lowerBounds) / stepSize)]++;
+					}
+				});
 			});
+			
 
 			for (var i = 0; i < numDataPoints; i++) {
 				if (impressionTimeline.datasets[0].data[i] == 0) {
@@ -443,13 +397,13 @@
 				}
 			}
 
-			if (sessions.length > 0) {
+			if (creative.sessions.length > 0) {
 				var interactionsPerInterval = [];
 				for (var i = 0; i < numDataPoints; i++) {
 					interactionsPerInterval.push(0);
 				}
 
-				sessions.forEach(session => {
+				creative.sessions.forEach(session => {
 					if (session.hasInteraction) {
 						session.interactionTime = session.interactionEnd - session.interactionStart;
 
@@ -520,7 +474,6 @@
 			const creativeDataURL = "/creative/" + creativeId;
 
 			fetch(creativeDataURL).then(data => data.json()).then(res => {
-				arrangeSessions(res);
 				generateChartsData(res);
 				renderBreakdowns();
 
