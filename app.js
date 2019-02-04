@@ -27,7 +27,7 @@ app.get("/creative", (req, res) => {
 });
 
 app.get("/creative/:creativeId/impression-timeline", (req, res) => {
-	console.log("Received GET impression timeline request with parameter " + req.params.creativeId);
+	console.log("Received GET impr. timeline\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
@@ -39,7 +39,7 @@ app.get("/creative/:creativeId/impression-timeline", (req, res) => {
 });
 
 app.get("/creative/:creativeId/action-timeline", (req, res) => {
-	console.log("Received GET action timeline request with parameter " + req.params.creativeId);
+	console.log("Received GET action timeline\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
@@ -51,7 +51,7 @@ app.get("/creative/:creativeId/action-timeline", (req, res) => {
 });
 
 app.get("/creative/:creativeId/rate-timeline", (req, res) => {
-	console.log("Received GET rate timeline request with parameter " + req.params.creativeId);
+	console.log("Received GET rate timeline\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
@@ -63,7 +63,7 @@ app.get("/creative/:creativeId/rate-timeline", (req, res) => {
 });
 
 app.get("/creative/:creativeId/engagement-timeline", (req, res) => {
-	console.log("Received GET engagement timeline request with parameter " + req.params.creativeId);
+	console.log("Received GET eng. timeline\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
@@ -75,7 +75,7 @@ app.get("/creative/:creativeId/engagement-timeline", (req, res) => {
 });
 
 app.get("/creative/:creativeId/impression-breakdown", (req, res) => {
-	console.log("Received GET impression breakdown request with parameter " + req.params.creativeId);
+	console.log("Received GET impr. breakdown\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
@@ -87,7 +87,7 @@ app.get("/creative/:creativeId/impression-breakdown", (req, res) => {
 });
 
 app.get("/creative/:creativeId/variant-breakdown", (req, res) => {
-	console.log("Received GET variant breakdown request with parameter " + req.params.creativeId);
+	console.log("Received GET variant breakdown\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
@@ -99,7 +99,7 @@ app.get("/creative/:creativeId/variant-breakdown", (req, res) => {
 });
 
 app.get("/creative/:creativeId/engagement-bars", (req, res) => {
-	console.log("Received GET engagement bars request with parameter " + req.params.creativeId);
+	console.log("Received GET engagement bars\trequest with parameter " + req.params.creativeId);
 
 	var creative = creatives.find(c => c.creativeId == req.params.creativeId);
 	if (creative == null) {
